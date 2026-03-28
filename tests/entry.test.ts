@@ -105,7 +105,7 @@ describe('Entry', () => {
     });
 
     describe('set', () => {
-      it('replaces component by class and returns old', () => {
+      it('replaces component by value and returns old', () => {
         const pos = new Position();
         pos.x = 1;
         const vel = new Velocity();
@@ -114,7 +114,7 @@ describe('Entry', () => {
         const newPos = new Position();
         newPos.x = 999;
 
-        const old = actor.set(Position, newPos);
+        const old = actor.set(newPos);
 
         expect(old).toBe(pos);
         expect(old?.x).toBe(1);
@@ -129,8 +129,8 @@ describe('Entry', () => {
         const actor = new Entry(Actor, [pos, new Velocity()]);
 
         const newHealth = new Health();
-        expect(() => actor.set(Health, newHealth)).toThrow(TypeError);
-        expect(() => actor.set(Health, newHealth)).toThrow('Component Health is not in this Entry');
+        expect(() => actor.set(newHealth)).toThrow(TypeError);
+        expect(() => actor.set(newHealth)).toThrow('Component Health is not in this Entry');
       });
     });
 
@@ -254,7 +254,7 @@ describe('Entry', () => {
       const newPos = new Position();
       newPos.x = 123;
 
-      const old = entry.set(Position, newPos);
+      const old = entry.set(newPos);
 
       expect(old).toBe(pos);
       expect(entry.get(Position)).toBe(newPos);
