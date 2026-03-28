@@ -1,0 +1,14 @@
+src/
+tests/
+.github/
+.husky/
+.lintstagedrc.cjs
+commitlint.config.cjs
+vitest.config.ts
+tsconfig.json
+tsconfig.build.json
+eslint.config.cjs
+prettier.config.cjs
+typedoc.json
+*.test.ts
+*.spec.ts

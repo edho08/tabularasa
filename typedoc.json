@@ -1,0 +1,12 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "tabularasa",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "gitRevision": "main",
+  "readme": "README.md",
+  "plugin": []
+}
