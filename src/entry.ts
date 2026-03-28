@@ -1,10 +1,6 @@
 import { Component, ComponentCtor } from './component';
 import { Entity } from './entity';
 
-type InstanceTypes<T extends readonly ComponentCtor[]> = {
-  [K in keyof T]: T[K] extends new (...args: any[]) => infer I ? I : never;
-}[number];
-
 export class Entry<T extends Entity = Entity> {
   entityType: new (...args: any[]) => T;
   components: Component[];
@@ -18,14 +14,14 @@ export class Entry<T extends Entity = Entity> {
       : never,
     components: T extends { columns: infer C }
       ? C extends readonly ComponentCtor[]
-        ? InstanceTypes<C>
+        ? Component[]
         : Component[]
       : Component[],
   ) {
     this.entityType = entityType as new (...args: any[]) => T;
     this.components = components;
     this.columns = (entityType as any).columns;
-    for (const comp of this.components) {
+    for (const comp of components) {
       comp.attach(this);
     }
   }
