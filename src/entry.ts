@@ -12,11 +12,7 @@ export class Entry<T extends Entity = Entity> {
         ? T
         : never
       : never,
-    components: T extends { columns: infer C }
-      ? C extends readonly ComponentCtor[]
-        ? Component[]
-        : Component[]
-      : Component[],
+    components: Component[],
   ) {
     this.entityType = entityType as new (...args: any[]) => T;
     this.components = components;
