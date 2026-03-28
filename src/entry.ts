@@ -25,6 +25,9 @@ export class Entry<T extends Entity = Entity> {
     this.entityType = entityType as new (...args: any[]) => T;
     this.components = components;
     this.columns = (entityType as any).columns;
+    for (const comp of this.components) {
+      comp.attach(this);
+    }
   }
 
   get<C extends ComponentCtor>(ctor: C): InstanceType<C> {
@@ -39,11 +42,17 @@ export class Entry<T extends Entity = Entity> {
     return this.components[index] as InstanceType<ComponentCtor>;
   }
 
+  has<C extends ComponentCtor>(ctor: C): boolean {
+    return this.components.some(c => c instanceof ctor);
+  }
+
   set<C extends ComponentCtor>(ctor: C, value: InstanceType<C>): InstanceType<C> | undefined {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
     const old = this.components[idx];
+    old.detach(this);
     this.components[idx] = value;
+    value.attach(this);
     return old as InstanceType<C>;
   }
 
@@ -52,7 +61,9 @@ export class Entry<T extends Entity = Entity> {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
     const old = this.components[idx];
+    old.detach(this);
     this.components[idx] = value;
+    value.attach(this);
     return old;
   }
 
@@ -67,7 +78,9 @@ export class Entry<T extends Entity = Entity> {
       );
     }
     const old = this.components[index];
+    old.detach(this);
     this.components[index] = value;
+    value.attach(this);
     return old;
   }
 }

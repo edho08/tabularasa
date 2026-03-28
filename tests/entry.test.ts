@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { Component } from '../src/component';
 import { Entity } from '../src/entity';
 import { Entry } from '../src/entry';
@@ -30,7 +30,55 @@ class Enemy extends Entity {
   static columns = Columns(Position, Velocity, Health);
 }
 
+class TrackedComponent extends Component {
+  static attachCalls = 0;
+  static detachCalls = 0;
+
+  attach(_entry: any): void {
+    TrackedComponent.attachCalls++;
+  }
+
+  detach(_entry: any): void {
+    TrackedComponent.detachCalls++;
+  }
+}
+
+class TrackedPosition extends Position {
+  static attachCalls = 0;
+  static detachCalls = 0;
+
+  attach(_entry: any): void {
+    TrackedPosition.attachCalls++;
+  }
+
+  detach(_entry: any): void {
+    TrackedPosition.detachCalls++;
+  }
+}
+
+class TrackedVelocity extends Velocity {
+  static attachCalls = 0;
+  static detachCalls = 0;
+
+  attach(_entry: any): void {
+    TrackedVelocity.attachCalls++;
+  }
+
+  detach(_entry: any): void {
+    TrackedVelocity.detachCalls++;
+  }
+}
+
 describe('Entry', () => {
+  beforeEach(() => {
+    TrackedComponent.attachCalls = 0;
+    TrackedComponent.detachCalls = 0;
+    TrackedPosition.attachCalls = 0;
+    TrackedPosition.detachCalls = 0;
+    TrackedVelocity.attachCalls = 0;
+    TrackedVelocity.detachCalls = 0;
+  });
+
   describe('typed Entry<Actor>', () => {
     it('can be created with entity type and components', () => {
       const pos = new Position();
@@ -328,6 +376,95 @@ describe('Entry', () => {
       expect(() => enemy.setAt(2, newPos)).toThrow(
         'Type mismatch: expected Health at index 2, got Position',
       );
+    });
+  });
+
+  describe('has', () => {
+    it('returns true for component that exists', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const actor = new Entry(Actor, [pos, vel]);
+
+      expect(actor.has(Position)).toBe(true);
+      expect(actor.has(Velocity)).toBe(true);
+    });
+
+    it('returns false for component that does not exist', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const actor = new Entry(Actor, [pos, vel]);
+
+      expect(actor.has(Health)).toBe(false);
+    });
+  });
+
+  describe('lifecycle hooks', () => {
+    describe('constructor', () => {
+      it('calls attach on all components', () => {
+        const pos = new TrackedPosition();
+        const vel = new TrackedVelocity();
+        new Entry(Actor, [pos, vel]);
+
+        expect(TrackedPosition.attachCalls).toBe(1);
+        expect(TrackedVelocity.attachCalls).toBe(1);
+      });
+    });
+
+    describe('set', () => {
+      it('calls detach on old component and attach on new', () => {
+        const pos = new TrackedPosition();
+        const vel = new TrackedVelocity();
+        const entry = new Entry(Actor, [pos, vel]);
+
+        TrackedPosition.attachCalls = 0;
+        TrackedVelocity.attachCalls = 0;
+
+        const newPos = new TrackedPosition();
+        entry.set(Position, newPos);
+
+        expect(TrackedPosition.detachCalls).toBe(1);
+        expect(TrackedPosition.attachCalls).toBe(1);
+        expect(TrackedVelocity.attachCalls).toBe(0);
+        expect(TrackedVelocity.detachCalls).toBe(0);
+      });
+    });
+
+    describe('setAny', () => {
+      it('calls detach on old component and attach on new', () => {
+        const pos = new TrackedPosition();
+        const vel = new TrackedVelocity();
+        const entry = new Entry(Actor, [pos, vel]);
+
+        TrackedPosition.attachCalls = 0;
+        TrackedVelocity.attachCalls = 0;
+
+        const newPos = new TrackedPosition();
+        entry.setAny(newPos);
+
+        expect(TrackedPosition.detachCalls).toBe(1);
+        expect(TrackedPosition.attachCalls).toBe(1);
+        expect(TrackedVelocity.attachCalls).toBe(0);
+        expect(TrackedVelocity.detachCalls).toBe(0);
+      });
+    });
+
+    describe('setAt', () => {
+      it('calls detach on old component and attach on new', () => {
+        const pos = new TrackedPosition();
+        const vel = new TrackedVelocity();
+        const entry = new Entry(Actor, [pos, vel]);
+
+        TrackedPosition.attachCalls = 0;
+        TrackedVelocity.attachCalls = 0;
+
+        const newPos = new TrackedPosition();
+        entry.setAt(0, newPos);
+
+        expect(TrackedPosition.detachCalls).toBe(1);
+        expect(TrackedPosition.attachCalls).toBe(1);
+        expect(TrackedVelocity.attachCalls).toBe(0);
+        expect(TrackedVelocity.detachCalls).toBe(0);
+      });
     });
   });
 });
