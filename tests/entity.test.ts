@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Component } from '../src/component';
 import { Entity } from '../src/entity';
-import { Columns } from '../src/columns';
+import { Columns } from '../src/entity';
 
 class Position extends Component {}
 class Velocity extends Component {}
