@@ -40,5 +40,11 @@ describe('Entity', () => {
       expect(Actor.columns[1]).toBe(Velocity);
       expect(Enemy.columns[2]).toBe(Health);
     });
+
+    it('throws for duplicate components', () => {
+      expect(() => Columns(Position, Velocity, Position)).toThrow(
+        'Duplicate component in Columns: Position',
+      );
+    });
   });
 });
