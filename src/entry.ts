@@ -1,44 +1,38 @@
 import { Component, ComponentCtor } from './component';
 import { Entity } from './entity';
 
-export class Entry<T extends Entity = Entity> {
-  entityType: new (...args: any[]) => T;
+export class Entry<T extends typeof Entity = typeof Entity> {
+  entityType: T;
   components: Component[];
-  readonly columns: readonly ComponentCtor[];
 
-  constructor(
-    entityType: T extends { columns: infer C }
-      ? C extends readonly ComponentCtor[]
-        ? T
-        : never
-      : never,
-    components: Component[],
-  ) {
-    this.entityType = entityType as new (...args: any[]) => T;
+  constructor(entityType: T, components: Component[]) {
+    this.entityType = entityType;
     this.components = components;
-    this.columns = (entityType as any).columns;
     for (const comp of components) {
       comp.attach(this);
     }
   }
 
-  get<C extends ComponentCtor>(ctor: C): InstanceType<C> {
+  get<C extends T['columns'][number]>(ctor: C): InstanceType<C> {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
     return this.components[idx] as InstanceType<C>;
   }
 
   getAt<I extends number>(index: I): InstanceType<ComponentCtor> {
-    if (index < 0 || index >= this.columns.length)
+    if (index < 0 || index >= this.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
     return this.components[index] as InstanceType<ComponentCtor>;
   }
 
-  has<C extends ComponentCtor>(ctor: C): boolean {
+  has<C extends T['columns'][number]>(ctor: C): boolean {
     return this.components.some(c => c instanceof ctor);
   }
 
-  set<C extends ComponentCtor>(ctor: C, value: InstanceType<C>): InstanceType<C> | undefined {
+  set<C extends T['columns'][number]>(
+    ctor: C,
+    value: InstanceType<C>,
+  ): InstanceType<C> | undefined {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
     const old = this.components[idx];
@@ -60,9 +54,9 @@ export class Entry<T extends Entity = Entity> {
   }
 
   setAt<I extends number>(index: I, value: Component): Component | undefined {
-    if (index < 0 || index >= this.columns.length)
+    if (index < 0 || index >= this.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
-    const Expected = this.columns[index];
+    const Expected = this.entityType.columns[index];
     const valueCtor = value.constructor as ComponentCtor;
     if (!(value instanceof Expected)) {
       throw new TypeError(
