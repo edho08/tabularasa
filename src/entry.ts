@@ -1,41 +1,39 @@
 import { Component, ComponentCtor } from './component';
+import { Entity } from './entity';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {
   [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
 };
 
-export class Entry<
-  T extends { columns: readonly ComponentCtor[] },
-  C extends readonly ComponentCtor[] = T['columns'],
-> {
+export class Entry<T extends typeof Entity> {
   entityType: T;
   components: Component[];
 
-  constructor(entityType: T, components: ComponentsOf<C>) {
+  constructor(entityType: T, components: ComponentsOf<T['columns']>) {
     this.entityType = entityType;
-    this.components = components as Component[];
+    this.components = [...components] as Component[];
     for (const comp of components) {
       comp.attach(this);
     }
   }
 
-  get<Ctor extends C[number]>(ctor: Ctor): InstanceType<Ctor> {
+  get<Ctor extends T['columns'][number]>(ctor: Ctor): InstanceType<Ctor> {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
     return this.components[idx] as InstanceType<Ctor>;
   }
 
-  getAt<I extends number>(index: I): InstanceType<ComponentCtor> {
+  getAt<I extends number>(index: I): InstanceType<T['columns'][I]> {
     if (index < 0 || index >= this.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
-    return this.components[index] as InstanceType<ComponentCtor>;
+    return this.components[index] as InstanceType<T['columns'][I]>;
   }
 
-  has<Ctor extends C[number]>(ctor: Ctor): boolean {
+  has<Ctor extends T['columns'][number]>(ctor: Ctor): boolean {
     return this.components.some(c => c instanceof ctor);
   }
 
-  set<Ctor extends C[number]>(
+  set<Ctor extends T['columns'][number]>(
     ctor: Ctor,
     value: InstanceType<Ctor>,
   ): InstanceType<Ctor> | undefined {
