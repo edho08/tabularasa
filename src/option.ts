@@ -7,6 +7,10 @@ export class Option<T extends Component = Component> extends Component {
 
   static ctor: ComponentCtor;
 
+  static create<T extends Component>(this: new (value?: T) => Option<T>, value: T): Option<T> {
+    return new this(value);
+  }
+
   constructor(value?: T) {
     super();
     this.value = value;

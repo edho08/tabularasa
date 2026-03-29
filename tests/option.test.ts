@@ -82,6 +82,18 @@ describe('Option', () => {
     });
   });
 
+  describe('create', () => {
+    it('creates option with value using static method', () => {
+      const health = new Health();
+      health.hp = 42;
+      const opt = HealthOpt.create(health);
+
+      expect(opt.value).toBe(health);
+      expect(opt.isSome()).toBe(true);
+      expect(opt.unwrap().hp).toBe(42);
+    });
+  });
+
   describe('isSome', () => {
     it('returns true when value is set', () => {
       const opt = new HealthOpt(new Health());
