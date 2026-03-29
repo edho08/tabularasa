@@ -1,5 +1,9 @@
 import { Component, ComponentCtor } from './component';
 
+type ComponentsOf<C extends readonly ComponentCtor[]> = {
+  [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
+};
+
 export class Entry<
   T extends { columns: readonly ComponentCtor[] },
   C extends readonly ComponentCtor[] = T['columns'],
@@ -7,9 +11,9 @@ export class Entry<
   entityType: T;
   components: Component[];
 
-  constructor(entityType: T, components: Component[]) {
+  constructor(entityType: T, components: ComponentsOf<C>) {
     this.entityType = entityType;
-    this.components = components;
+    this.components = components as Component[];
     for (const comp of components) {
       comp.attach(this);
     }
