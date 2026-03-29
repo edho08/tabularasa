@@ -1,7 +1,9 @@
 import { Component, ComponentCtor } from './component';
-import { Entity } from './entity';
 
-export class Entry<T extends typeof Entity = typeof Entity> {
+export class Entry<
+  T extends { columns: readonly ComponentCtor[] },
+  C extends readonly ComponentCtor[] = T['columns'],
+> {
   entityType: T;
   components: Component[];
 
@@ -13,10 +15,10 @@ export class Entry<T extends typeof Entity = typeof Entity> {
     }
   }
 
-  get<C extends T['columns'][number]>(ctor: C): InstanceType<C> {
+  get<Ctor extends C[number]>(ctor: Ctor): InstanceType<Ctor> {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
-    return this.components[idx] as InstanceType<C>;
+    return this.components[idx] as InstanceType<Ctor>;
   }
 
   getAt<I extends number>(index: I): InstanceType<ComponentCtor> {
@@ -25,21 +27,21 @@ export class Entry<T extends typeof Entity = typeof Entity> {
     return this.components[index] as InstanceType<ComponentCtor>;
   }
 
-  has<C extends T['columns'][number]>(ctor: C): boolean {
+  has<Ctor extends C[number]>(ctor: Ctor): boolean {
     return this.components.some(c => c instanceof ctor);
   }
 
-  set<C extends T['columns'][number]>(
-    ctor: C,
-    value: InstanceType<C>,
-  ): InstanceType<C> | undefined {
+  set<Ctor extends C[number]>(
+    ctor: Ctor,
+    value: InstanceType<Ctor>,
+  ): InstanceType<Ctor> | undefined {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
     const old = this.components[idx];
     old.detach(this);
     this.components[idx] = value;
     value.attach(this);
-    return old as InstanceType<C>;
+    return old as InstanceType<Ctor>;
   }
 
   setAny(value: Component): Component | undefined {
