@@ -1,5 +1,6 @@
 import { Component, ComponentCtor } from './component';
 import { Entity } from './entity';
+import type { Table } from './table';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {
   [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
@@ -8,6 +9,13 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 export class Entry<T extends typeof Entity> {
   entityType: T;
   components: Component[];
+  private table?: Table<T>;
+  private _index: number = -1;
+
+  get index(): number {
+    if (this._index < 0) throw new TypeError(`Entry does not have an index`);
+    return this._index;
+  }
 
   constructor(entityType: T, components: ComponentsOf<T['columns']>) {
     this.entityType = entityType;
@@ -15,6 +23,27 @@ export class Entry<T extends typeof Entity> {
     for (const comp of components) {
       comp.attach(this);
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private callAlive(): void {
+    for (const comp of this.components) comp.alive(this);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private callDead(): void {
+    for (const comp of this.components) comp.dead(this);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private setTable(t: Table<T> | undefined): void {
+    if (this.table !== undefined && t !== undefined)
+      throw new TypeError(`Entry already belongs to a Table`);
+    if (this.table === undefined && t === undefined)
+      throw new TypeError(`Entry is not in any Table`);
+    this.table = t;
+    if (t !== undefined) this.callAlive();
+    else this.callDead();
   }
 
   get<Ctor extends T['columns'][number]>(ctor: Ctor): InstanceType<Ctor> {
@@ -49,6 +78,7 @@ export class Entry<T extends typeof Entity> {
     old.detach(this);
     this.components[idx] = value;
     value.attach(this);
+    if (this.table !== undefined) value.alive(this);
     return old as InstanceType<Ctor>;
   }
 
@@ -63,6 +93,7 @@ export class Entry<T extends typeof Entity> {
     old.detach(this);
     this.components[idx] = value;
     value.attach(this);
+    if (this.table !== undefined) value.alive(this);
     return old;
   }
 
@@ -80,6 +111,7 @@ export class Entry<T extends typeof Entity> {
     old.detach(this);
     this.components[index] = value;
     value.attach(this);
+    if (this.table !== undefined) value.alive(this);
     return old;
   }
 }

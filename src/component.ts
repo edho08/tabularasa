@@ -8,6 +8,8 @@ export abstract class Component {
   attach(_entry: Entry<any>): void {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   detach(_entry: Entry<any>): void {}
-  alive(): void {}
-  dead(): void {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  alive(_entry: Entry<any>): void {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dead(_entry: Entry<any>): void {}
 }

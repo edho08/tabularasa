@@ -3,6 +3,7 @@ import { Component } from '../src/component';
 import { Entity } from '../src/entity';
 import { Entry } from '../src/entry';
 import { Columns } from '../src/entity';
+import { Table } from '../src/table';
 
 class Position extends Component {
   x = 0;
@@ -33,6 +34,8 @@ class Enemy extends Entity {
 class TrackedComponent extends Component {
   static attachCalls = 0;
   static detachCalls = 0;
+  static aliveCalls = 0;
+  static deadCalls = 0;
 
   attach(_entry: any): void {
     TrackedComponent.attachCalls++;
@@ -41,11 +44,21 @@ class TrackedComponent extends Component {
   detach(_entry: any): void {
     TrackedComponent.detachCalls++;
   }
+
+  alive(_entry: any): void {
+    TrackedComponent.aliveCalls++;
+  }
+
+  dead(_entry: any): void {
+    TrackedComponent.deadCalls++;
+  }
 }
 
 class TrackedPosition extends Position {
   static attachCalls = 0;
   static detachCalls = 0;
+  static aliveCalls = 0;
+  static deadCalls = 0;
 
   attach(_entry: any): void {
     TrackedPosition.attachCalls++;
@@ -54,11 +67,21 @@ class TrackedPosition extends Position {
   detach(_entry: any): void {
     TrackedPosition.detachCalls++;
   }
+
+  alive(_entry: any): void {
+    TrackedPosition.aliveCalls++;
+  }
+
+  dead(_entry: any): void {
+    TrackedPosition.deadCalls++;
+  }
 }
 
 class TrackedVelocity extends Velocity {
   static attachCalls = 0;
   static detachCalls = 0;
+  static aliveCalls = 0;
+  static deadCalls = 0;
 
   attach(_entry: any): void {
     TrackedVelocity.attachCalls++;
@@ -67,16 +90,30 @@ class TrackedVelocity extends Velocity {
   detach(_entry: any): void {
     TrackedVelocity.detachCalls++;
   }
+
+  alive(_entry: any): void {
+    TrackedVelocity.aliveCalls++;
+  }
+
+  dead(_entry: any): void {
+    TrackedVelocity.deadCalls++;
+  }
 }
 
 describe('Entry', () => {
   beforeEach(() => {
     TrackedComponent.attachCalls = 0;
     TrackedComponent.detachCalls = 0;
+    TrackedComponent.aliveCalls = 0;
+    TrackedComponent.deadCalls = 0;
     TrackedPosition.attachCalls = 0;
     TrackedPosition.detachCalls = 0;
+    TrackedPosition.aliveCalls = 0;
+    TrackedPosition.deadCalls = 0;
     TrackedVelocity.attachCalls = 0;
     TrackedVelocity.detachCalls = 0;
+    TrackedVelocity.aliveCalls = 0;
+    TrackedVelocity.deadCalls = 0;
   });
 
   describe('typed Entry<Actor>', () => {
@@ -110,7 +147,7 @@ describe('Entry', () => {
         const actor = new Entry(Actor, [pos, vel]);
 
         expect(() => actor.get(Health)).toThrow(TypeError);
-        expect(() => actor.get(Health)).toThrow('Component Health is not in this Entry');
+        expect(() => actor.get(Health)).toThrow('Component Health is not in component set of');
       });
     });
 
@@ -178,7 +215,9 @@ describe('Entry', () => {
 
         const newHealth = new Health();
         expect(() => actor.set(Health, newHealth)).toThrow(TypeError);
-        expect(() => actor.set(Health, newHealth)).toThrow('Component Health is not in this Entry');
+        expect(() => actor.set(Health, newHealth)).toThrow(
+          'Component Health is not in component set of',
+        );
       });
     });
 
@@ -208,7 +247,7 @@ describe('Entry', () => {
 
         const unused = new Unused();
         expect(() => actor.setAny(unused)).toThrow(TypeError);
-        expect(() => actor.setAny(unused)).toThrow('Component Unused is not in this Entry');
+        expect(() => actor.setAny(unused)).toThrow('Component Unused is not in component set of');
       });
     });
 
@@ -279,7 +318,7 @@ describe('Entry', () => {
       const found = entry.get(Position);
       expect(found).toBe(pos);
 
-      expect(() => entry.get(Health)).toThrow('Component Health is not in this Entry');
+      expect(() => entry.get(Health)).toThrow('Component Health is not in component set of');
     });
 
     it('getAt works with any index', () => {
@@ -465,6 +504,58 @@ describe('Entry', () => {
         expect(TrackedVelocity.attachCalls).toBe(0);
         expect(TrackedVelocity.detachCalls).toBe(0);
       });
+    });
+  });
+
+  describe('lifecycle with table', () => {
+    it('set calls alive on new component when entry is in table', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+
+      table.insert(entry);
+
+      TrackedPosition.aliveCalls = 0;
+      TrackedVelocity.aliveCalls = 0;
+
+      const newPos = new TrackedPosition();
+      entry.set(Position, newPos);
+
+      expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedVelocity.aliveCalls).toBe(0);
+    });
+
+    it('setAny calls alive on new component when entry is in table', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+
+      table.insert(entry);
+
+      TrackedPosition.aliveCalls = 0;
+
+      const newPos = new TrackedPosition();
+      entry.setAny(newPos);
+
+      expect(TrackedPosition.aliveCalls).toBe(1);
+    });
+
+    it('setAt calls alive on new component when entry is in table', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+
+      table.insert(entry);
+
+      TrackedPosition.aliveCalls = 0;
+
+      const newPos = new TrackedPosition();
+      entry.setAt(0, newPos);
+
+      expect(TrackedPosition.aliveCalls).toBe(1);
     });
   });
 });

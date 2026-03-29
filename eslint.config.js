@@ -1,9 +1,9 @@
-const js = require('@eslint/js')
-const tseslint = require('@typescript-eslint/eslint-plugin')
-const tsparser = require('@typescript-eslint/parser')
-const prettier = require('eslint-config-prettier')
+import js from '@eslint/js';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+import prettier from 'eslint-config-prettier';
 
-module.exports = [
+export default [
   {
     name: 'app',
     files: ['**/*.ts', '**/*.tsx'],
@@ -38,4 +38,4 @@ module.exports = [
     },
     ignores: ['dist', 'node_modules', 'coverage', '*.cjs'],
   },
-]
+];
