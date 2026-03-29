@@ -21,7 +21,7 @@ export class Option<T extends Component = Component> extends Component {
   }
 
   unwrap(): T {
-    if (this.value === undefined) throw new TypeError('Option has no value');
+    if (this.value === undefined) throw new TypeError(`${this.constructor.name} has no value`);
     return this.value;
   }
 
@@ -74,7 +74,7 @@ const optionCache = new WeakMap<ComponentCtor, typeof Option>();
 export function Optional<C extends ComponentCtor>(ctor: C): typeof Option {
   let OptionClass = optionCache.get(ctor);
   if (!OptionClass) {
-    const name = `Optional(${ctor.name})`;
+    const name = `Option<${ctor.name}>`;
     OptionClass = class extends Option {
       static override name = name;
     };

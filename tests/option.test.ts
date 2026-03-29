@@ -120,7 +120,7 @@ describe('Option', () => {
       const opt = new HealthOpt(undefined);
 
       expect(() => opt.unwrap()).toThrow(TypeError);
-      expect(() => opt.unwrap()).toThrow('Option has no value');
+      expect(() => opt.unwrap()).toThrow('Option<Health> has no value');
     });
   });
 
@@ -347,8 +347,8 @@ describe('Option', () => {
       const Opt = Optional(Health);
       const instance = new Opt(new Health());
 
-      expect(Opt.name).toBe('Optional(Health)');
-      expect(instance.constructor.name).toBe('Optional(Health)');
+      expect(Opt.name).toBe('Option<Health>');
+      expect(instance.constructor.name).toBe('Option<Health>');
     });
 
     it('memoized class has static ctor pointing to original', () => {
