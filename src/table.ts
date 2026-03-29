@@ -36,4 +36,21 @@ export class Table<T extends typeof Entity> {
   *[Symbol.iterator](): Iterator<Entry<T>> {
     yield* this.entries;
   }
+
+  serialize(): Record<string, unknown>[][] {
+    return this.entries.map(entry => entry.serialize());
+  }
+
+  static deserialize<T extends typeof Entity>(
+    this: new (entityType: T) => Table<T>,
+    data: Record<string, unknown>[][],
+    entityType: T,
+  ): Table<T> {
+    const table = new this(entityType);
+    for (let i = 0; i < data.length; i++) {
+      const entry = Entry.deserialize(data[i], entityType, table, i);
+      table.entries.push(entry);
+    }
+    return table;
+  }
 }

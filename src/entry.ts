@@ -9,8 +9,12 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 export class Entry<T extends typeof Entity> {
   entityType: T;
   components: Component[];
-  private table?: Table<T>;
+  private _table?: Table<T>;
   private _index: number = -1;
+
+  get table(): Table<T> | undefined {
+    return this._table;
+  }
 
   get index(): number {
     if (this._index < 0) throw new TypeError(`Entry does not have an index`);
@@ -37,11 +41,11 @@ export class Entry<T extends typeof Entity> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private setTable(t: Table<T> | undefined): void {
-    if (this.table !== undefined && t !== undefined)
+    if (this._table !== undefined && t !== undefined)
       throw new TypeError(`Entry already belongs to a Table`);
-    if (this.table === undefined && t === undefined)
+    if (this._table === undefined && t === undefined)
       throw new TypeError(`Entry is not in any Table`);
-    this.table = t;
+    this._table = t;
     if (t !== undefined) this.callAlive();
     else this.callDead();
   }
@@ -78,7 +82,7 @@ export class Entry<T extends typeof Entity> {
     old.detach(this);
     this.components[idx] = value;
     value.attach(this);
-    if (this.table !== undefined) value.alive(this);
+    if (this._table !== undefined) value.alive(this);
     return old as InstanceType<Ctor>;
   }
 
@@ -93,7 +97,7 @@ export class Entry<T extends typeof Entity> {
     old.detach(this);
     this.components[idx] = value;
     value.attach(this);
-    if (this.table !== undefined) value.alive(this);
+    if (this._table !== undefined) value.alive(this);
     return old;
   }
 
@@ -111,7 +115,33 @@ export class Entry<T extends typeof Entity> {
     old.detach(this);
     this.components[index] = value;
     value.attach(this);
-    if (this.table !== undefined) value.alive(this);
+    if (this._table !== undefined) value.alive(this);
     return old;
+  }
+
+  serialize(): Record<string, unknown>[] {
+    return this.components.map(c => c.serialize(this));
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static deserialize<T extends typeof Entity>(
+    this: new (entityType: T, components: any) => Entry<T>,
+    data: Record<string, unknown>[],
+    entityType: T,
+    table?: Table<T>,
+    index?: number,
+  ): Entry<T> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entry = new this(entityType, [] as any);
+    const components = entityType.columns.map((ctor, i) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (ctor as any).deserialize(data[i], entry),
+    );
+    entry.components = components;
+    if (table && index !== undefined) {
+      entry._table = table;
+      entry._index = index;
+    }
+    return entry;
   }
 }

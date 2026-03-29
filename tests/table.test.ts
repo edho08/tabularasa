@@ -346,4 +346,166 @@ describe('Table', () => {
       expect(entry2.index).toBe(0);
     });
   });
+
+  describe('serialize', () => {
+    it('serializes entry components to array of objects', () => {
+      const pos = new Position();
+      pos.x = 10;
+      pos.y = 20;
+      const vel = new Velocity();
+      vel.vx = 1;
+      vel.vy = 2;
+      const entry = new Entry(Actor, [pos, vel]);
+
+      const data = entry.serialize();
+
+      expect(data).toHaveLength(2);
+      expect(data[0]).toEqual({ x: 10, y: 20 });
+      expect(data[1]).toEqual({ vx: 1, vy: 2 });
+    });
+  });
+
+  describe('deserialize', () => {
+    it('reconstructs entry from serialized data', () => {
+      const data = [
+        { x: 100, y: 200 },
+        { vx: 3, vy: 4 },
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entry = Entry.deserialize(data, Actor, undefined, undefined) as Entry<any>;
+
+      expect(entry).toBeInstanceOf(Entry);
+      expect(entry.get(Position).x).toBe(100);
+      expect(entry.get(Position).y).toBe(200);
+      expect(entry.get(Velocity).vx).toBe(3);
+      expect(entry.get(Velocity).vy).toBe(4);
+    });
+
+    it('does not attach components during deserialize', () => {
+      TrackedPosition.attachCalls = 0;
+      TrackedVelocity.attachCalls = 0;
+
+      const data = [
+        { x: 1, y: 2 },
+        { vx: 3, vy: 4 },
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Entry.deserialize(data, Actor as any, undefined, undefined);
+
+      expect(TrackedPosition.attachCalls).toBe(0);
+      expect(TrackedVelocity.attachCalls).toBe(0);
+    });
+
+    it('sets table and index when provided', () => {
+      const data = [
+        { x: 1, y: 2 },
+        { vx: 3, vy: 4 },
+      ];
+
+      const table = new Table(Actor);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entry = Entry.deserialize(data, Actor, table, 5) as Entry<any>;
+
+      expect(entry.table).toBe(table);
+      expect(entry.index).toBe(5);
+    });
+  });
+
+  describe('Table.serialize', () => {
+    it('serializes all entries', () => {
+      const pos1 = new Position();
+      pos1.x = 1;
+      const vel1 = new Velocity();
+      vel1.vx = 2;
+      const entry1 = new Entry(Actor, [pos1, vel1]);
+
+      const pos2 = new Position();
+      pos2.x = 3;
+      const vel2 = new Velocity();
+      vel2.vx = 4;
+      const entry2 = new Entry(Actor, [pos2, vel2]);
+
+      const table = new Table(Actor);
+      table.insert(entry1);
+      table.insert(entry2);
+
+      const data = table.serialize();
+
+      expect(data).toHaveLength(2);
+      expect(data[0]).toEqual([
+        { x: 1, y: 0 },
+        { vx: 2, vy: 0 },
+      ]);
+      expect(data[1]).toEqual([
+        { x: 3, y: 0 },
+        { vx: 4, vy: 0 },
+      ]);
+    });
+  });
+
+  describe('Table.deserialize', () => {
+    it('reconstructs table from serialized data', () => {
+      const data = [
+        [
+          { x: 10, y: 20 },
+          { vx: 30, vy: 40 },
+        ],
+        [
+          { x: 50, y: 60 },
+          { vx: 70, vy: 80 },
+        ],
+      ];
+
+      const table = Table.deserialize(data, Actor);
+
+      expect(table).toBeInstanceOf(Table);
+      expect([...table]).toHaveLength(2);
+
+      const entries = [...table];
+      expect(entries[0].get(Position).x).toBe(10);
+      expect(entries[0].get(Position).y).toBe(20);
+      expect(entries[1].get(Velocity).vx).toBe(70);
+    });
+
+    it('does not trigger alive during deserialize', () => {
+      TrackedPosition.aliveCalls = 0;
+      TrackedVelocity.aliveCalls = 0;
+
+      const data = [
+        [
+          { x: 1, y: 2 },
+          { vx: 3, vy: 4 },
+        ],
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Table.deserialize(data, Actor as any);
+
+      expect(TrackedPosition.aliveCalls).toBe(0);
+      expect(TrackedVelocity.aliveCalls).toBe(0);
+    });
+
+    it('entries have correct table reference and indices', () => {
+      const data = [
+        [
+          { x: 1, y: 2 },
+          { vx: 3, vy: 4 },
+        ],
+        [
+          { x: 5, y: 6 },
+          { vx: 7, vy: 8 },
+        ],
+      ];
+
+      const table = Table.deserialize(data, Actor);
+
+      const entries = [...table];
+      expect(entries[0].table).toBe(table);
+      expect(entries[0].index).toBe(0);
+      expect(entries[1].table).toBe(table);
+      expect(entries[1].index).toBe(1);
+    });
+  });
 });
