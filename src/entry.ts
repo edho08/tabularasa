@@ -19,7 +19,10 @@ export class Entry<T extends typeof Entity> {
 
   get<Ctor extends T['columns'][number]>(ctor: Ctor): InstanceType<Ctor> {
     const idx = this.components.findIndex(c => c instanceof ctor);
-    if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
+    if (idx < 0)
+      throw new TypeError(
+        `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
+      );
     return this.components[idx] as InstanceType<Ctor>;
   }
 
@@ -38,7 +41,10 @@ export class Entry<T extends typeof Entity> {
     value: InstanceType<Ctor>,
   ): InstanceType<Ctor> | undefined {
     const idx = this.components.findIndex(c => c instanceof ctor);
-    if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
+    if (idx < 0)
+      throw new TypeError(
+        `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
+      );
     const old = this.components[idx];
     old.detach(this);
     this.components[idx] = value;
@@ -49,7 +55,10 @@ export class Entry<T extends typeof Entity> {
   setAny(value: Component): Component | undefined {
     const ctor = value.constructor as ComponentCtor;
     const idx = this.components.findIndex(c => c instanceof ctor);
-    if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in this Entry`);
+    if (idx < 0)
+      throw new TypeError(
+        `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
+      );
     const old = this.components[idx];
     old.detach(this);
     this.components[idx] = value;
