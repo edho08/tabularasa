@@ -1,7 +1,9 @@
 import type { Entry } from '../table/entry';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ComponentCtor = new (...args: any[]) => Component;
+export interface ComponentCtor {
+  new (...args: any[]): Component;
+  deserialize(data: Record<string, unknown>): Component;
+}
 
 export abstract class Component {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,11 +29,7 @@ export abstract class Component {
     return result;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static deserialize<T extends Component>(
-    this: new (...args: any[]) => T,
-    _data: Record<string, unknown>,
-  ): T {
+  static deserialize(_data: Record<string, unknown>): Component {
     const instance = Object.create(this.prototype);
     for (const [key, value] of Object.entries(_data)) {
       (instance as any)[key] = value;

@@ -36,11 +36,10 @@ export class ReadonlyComponent<T extends Component = Component> extends Componen
     return this.value.serialize(entry);
   }
 
-  static override deserialize(
-    this: new (value: Component) => ReadonlyComponent,
-    data: Record<string, unknown>,
-  ): ReadonlyComponent {
-    const instance = new this(this.ctor.deserialize(data));
+  static deserialize(data: Record<string, unknown>): ReadonlyComponent {
+    const instance = Object.create(this.prototype) as ReadonlyComponent;
+    // @ts-expect-error - readonly property set during deserialization
+    instance.value = this.ctor.deserialize(data) as ReadonlyComponent['value'];
     return instance;
   }
 }
@@ -48,14 +47,14 @@ export class ReadonlyComponent<T extends Component = Component> extends Componen
 const readonlyCache = new WeakMap<ComponentCtor, typeof ReadonlyComponent>();
 
 export function Readonly<C extends ComponentCtor>(ctor: C): typeof ReadonlyComponent {
-  let ReadonlyClass = readonlyCache.get(ctor);
-  if (!ReadonlyClass) {
-    const name = `Readonly<${ctor.name}>`;
-    ReadonlyClass = class extends ReadonlyComponent {
-      static override name = name;
-    };
-    ReadonlyClass.ctor = ctor;
-    readonlyCache.set(ctor, ReadonlyClass);
+  const cached = readonlyCache.get(ctor);
+  if (cached !== undefined) return cached;
+
+  class ReadonlyClass extends ReadonlyComponent {
+    static override name = `Readonly<${ctor.name}>`;
+    static ctor: ComponentCtor = ctor;
   }
-  return ReadonlyClass;
+
+  readonlyCache.set(ctor, ReadonlyClass as unknown as typeof ReadonlyComponent);
+  return ReadonlyClass as unknown as typeof ReadonlyComponent;
 }

@@ -10,7 +10,7 @@ interface SubDefinition {
 export class DerivedComponent<T extends Component = Component> extends Component {
   value: T;
 
-  static base!: ComponentCtor;
+  static base: ComponentCtor = undefined as unknown as ComponentCtor;
   static subs: Map<string, SubDefinition> = new Map();
   static fallback?: (type: string, data: unknown) => Component;
 
@@ -54,11 +54,8 @@ export class DerivedComponent<T extends Component = Component> extends Component
     };
   }
 
-  static override deserialize(
-    this: new (value: Component) => DerivedComponent,
-    data: { type: string; data: Record<string, unknown> },
-  ): DerivedComponent {
-    const instance = new this(Object.create(null)) as DerivedComponent;
+  static deserialize(data: { type: string; data: Record<string, unknown> }): DerivedComponent {
+    const instance = Object.create(this.prototype) as DerivedComponent;
     const subs = (this as typeof DerivedComponent).subs;
     const fallback = (this as typeof DerivedComponent).fallback;
     const base = (this as typeof DerivedComponent).base;
@@ -84,27 +81,29 @@ const derivedCache = new Map<string, typeof DerivedComponent>();
 
 export function Derived<C extends ComponentCtor>(base: C): typeof DerivedComponent {
   const key = `Derived<${base.name}>`;
-  let DerivedClass = derivedCache.get(key);
-  if (!DerivedClass) {
-    DerivedClass = class extends DerivedComponent {
-      static override name = key;
-      static base!: ComponentCtor;
-      static subs: Map<string, SubDefinition> = new Map();
-      static fallback?: (type: string, data: unknown) => Component;
-      static sub<C extends ComponentCtor>(
-        ctor: C,
-        reviverFn?: (data: unknown) => InstanceType<C>,
-      ): typeof DerivedComponent {
-        this.subs.set(ctor.name, { ctor, reviver: reviverFn });
-        return this;
-      }
-      static reviver(fn: (type: string, data: unknown) => Component): typeof DerivedComponent {
-        this.fallback = fn;
-        return this;
-      }
-    };
-    DerivedClass.base = base;
-    derivedCache.set(key, DerivedClass);
+  const cached = derivedCache.get(key);
+  if (cached !== undefined) return cached;
+
+  class DerivedClass extends DerivedComponent {
+    static override name = key;
+    static base: ComponentCtor = base;
+    static subs: Map<string, SubDefinition> = new Map();
+    static fallback?: (type: string, data: unknown) => Component;
+
+    static sub<C2 extends ComponentCtor>(
+      ctor: C2,
+      reviverFn?: (data: unknown) => InstanceType<C2>,
+    ): typeof DerivedComponent {
+      this.subs.set(ctor.name, { ctor, reviver: reviverFn });
+      return this as typeof DerivedComponent;
+    }
+
+    static reviver(fn: (type: string, data: unknown) => Component): typeof DerivedComponent {
+      this.fallback = fn;
+      return this as typeof DerivedComponent;
+    }
   }
-  return DerivedClass;
+
+  derivedCache.set(key, DerivedClass as unknown as typeof DerivedComponent);
+  return DerivedClass as unknown as typeof DerivedComponent;
 }

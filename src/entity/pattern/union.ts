@@ -50,13 +50,12 @@ export class UnionComponent<T extends Component = Component> extends Component {
     return { type: idx, data: this.value.serialize(entry) };
   }
 
-  static override deserialize<C extends Component>(
-    this: new (value: Component) => UnionComponent<C>,
-    data: { type: number; data: Record<string, unknown> },
-  ): UnionComponent<C> {
+  static deserialize(data: { type: number; data: Record<string, unknown> }): UnionComponent {
     const ctor = this.ctors[data.type];
     if (!ctor) throw new TypeError(`Invalid type index: ${data.type}`);
-    return new this(ctor.deserialize(data.data) as C);
+    const instance = Object.create(this.prototype) as UnionComponent;
+    instance.value = ctor.deserialize(data.data) as UnionComponent['value'];
+    return instance;
   }
 }
 
@@ -71,17 +70,17 @@ function getKey(ctors: ComponentCtor[]): string {
 
 export function Union<C extends ComponentCtor[]>(...ctors: C): typeof UnionComponent {
   const key = getKey(ctors);
-  let UnionClass = unionCache.get(key);
-  if (!UnionClass) {
-    const name = `Union<${ctors
+  const cached = unionCache.get(key);
+  if (cached !== undefined) return cached;
+
+  class UnionClass extends UnionComponent {
+    static override name = `Union<${ctors
       .map(c => c.name)
       .sort()
       .join('|')}>`;
-    UnionClass = class extends UnionComponent {
-      static override name = name;
-      static ctors = ctors;
-    };
-    unionCache.set(key, UnionClass);
+    static ctors: ComponentCtor[] = ctors;
   }
-  return UnionClass;
+
+  unionCache.set(key, UnionClass as unknown as typeof UnionComponent);
+  return UnionClass as unknown as typeof UnionComponent;
 }

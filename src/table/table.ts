@@ -29,9 +29,12 @@ export class Table<T extends typeof Entity> {
     const idx = this.entries.indexOf(entry);
     if (idx < 0) return;
     entry.callDead();
+    // @ts-expect-error - internal field access, Table is the owner of Entry index
     entry._index = -1;
     const last = this.entries.pop();
+    if (last === undefined) return;
     if (last !== entry) {
+      // @ts-expect-error - internal field access, Table is the owner of Entry index
       last._index = idx;
       this.entries[idx] = last;
     }
@@ -52,7 +55,7 @@ export class Table<T extends typeof Entity> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (ctor as any).deserialize(entryData[j]),
       );
-      const entry = new Entry(this.entityType, components, this, i);
+      const entry = new Entry(this.entityType, components as ComponentsOf<T['columns']>, this, i);
       this.entries.push(entry);
     }
   }

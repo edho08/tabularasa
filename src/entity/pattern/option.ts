@@ -64,15 +64,13 @@ export class OptionComponent<T extends Component = Component> extends Component 
     if (this.value) this.value.onDeserialized(entry);
   }
 
+  // @ts-expect-error - returns null for None case, base returns Record<string, unknown>
   override serialize(entry: Entry<any>): Record<string, unknown> | null {
     return this.value ? this.value.serialize(entry) : null;
   }
 
-  static override deserialize(
-    this: new (...args: any[]) => OptionComponent,
-    data: Record<string, unknown> | null,
-  ): OptionComponent {
-    const instance = new this() as OptionComponent;
+  static deserialize(data: Record<string, unknown> | null): OptionComponent {
+    const instance = Object.create(this.prototype) as OptionComponent;
     if (data !== null) {
       instance.value = this.ctor.deserialize(data) as OptionComponent['value'];
     }
@@ -83,14 +81,14 @@ export class OptionComponent<T extends Component = Component> extends Component 
 const optionCache = new WeakMap<ComponentCtor, typeof OptionComponent>();
 
 export function Option<C extends ComponentCtor>(ctor: C): typeof OptionComponent {
-  let OptionClass = optionCache.get(ctor);
-  if (!OptionClass) {
-    const name = `Option<${ctor.name}>`;
-    OptionClass = class extends OptionComponent {
-      static override name = name;
-    };
-    OptionClass.ctor = ctor;
-    optionCache.set(ctor, OptionClass);
+  const cached = optionCache.get(ctor);
+  if (cached !== undefined) return cached;
+
+  class OptionClass extends OptionComponent {
+    static override name = `Option<${ctor.name}>`;
+    static ctor: ComponentCtor = ctor;
   }
-  return OptionClass;
+
+  optionCache.set(ctor, OptionClass as unknown as typeof OptionComponent);
+  return OptionClass as unknown as typeof OptionComponent;
 }
