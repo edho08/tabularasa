@@ -47,6 +47,11 @@ export class Table<T extends typeof Entity> {
     return this.entries.includes(entry);
   }
 
+  getAt(index: number): WeakRef<Entry<T>> | undefined {
+    if (index < 0 || index >= this.entries.length) return undefined;
+    return this.entries[index].weak();
+  }
+
   *[Symbol.iterator](): Iterator<Entry<T>> {
     yield* this.entries;
   }

@@ -236,6 +236,59 @@ describe('Table', () => {
     });
   });
 
+  describe('getAt', () => {
+    it('returns WeakRef for valid index', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+
+      const ref = table.getAt(0);
+
+      expect(ref).toBeInstanceOf(WeakRef);
+      expect(ref?.deref()).toBe(entry);
+    });
+
+    it('returns undefined for negative index', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+
+      expect(table.getAt(-1)).toBeUndefined();
+    });
+
+    it('returns undefined for index >= length', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+
+      expect(table.getAt(1)).toBeUndefined();
+      expect(table.getAt(100)).toBeUndefined();
+    });
+
+    it('derefd entry matches original after operations', () => {
+      const pos1 = new TrackedPosition();
+      const vel1 = new TrackedVelocity();
+      const entry1 = new Entry(Actor, [pos1, vel1]);
+
+      const pos2 = new TrackedPosition();
+      const vel2 = new TrackedVelocity();
+      const entry2 = new Entry(Actor, [pos2, vel2]);
+
+      const table = new Table(Actor);
+      table.insert(entry1);
+      table.insert(entry2);
+
+      expect(table.getAt(0)?.deref()).toBe(entry1);
+      expect(table.getAt(1)?.deref()).toBe(entry2);
+    });
+  });
+
   describe('iteration', () => {
     it('iterates over all entries with for...of', () => {
       const pos1 = new TrackedPosition();
