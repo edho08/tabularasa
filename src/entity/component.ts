@@ -8,7 +8,6 @@ export interface ComponentCtor {
 export abstract class Component {
   onAttached(_entry: AnyEntry): void {}
   onDetached(_entry: AnyEntry): void {}
-  onAlive(_entry: AnyEntry): void {}
   onDead(_entry: AnyEntry): void {}
   onDeserialized(_entry: AnyEntry): void {}
 

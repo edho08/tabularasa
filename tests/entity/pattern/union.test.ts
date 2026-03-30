@@ -158,7 +158,7 @@ describe('Union', () => {
       expect(TrackedPosition.detachCalls).toBe(1);
     });
 
-    it('onAlive propagates to inner value', () => {
+    it('onAttached propagates to inner value', () => {
       const tracked = new TrackedPosition();
       const UnionTracked = Union(TrackedPosition);
       class ActorWithTracked extends Entity {
@@ -168,7 +168,7 @@ describe('Union', () => {
 
       table.insert([new UnionTracked(tracked)]);
 
-      expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedPosition.attachCalls).toBe(1);
     });
 
     it('onDead propagates to inner value', () => {

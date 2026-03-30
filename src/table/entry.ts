@@ -3,7 +3,7 @@ import { Entity } from '../entity/entity';
 import type { Table } from './table';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {
-  [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
+  -readonly [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
 };
 
 export interface AnyEntry {
@@ -15,7 +15,7 @@ export interface AnyEntry {
 }
 
 export class Entry<T extends typeof Entity> implements AnyEntry {
-  components: Component[];
+  components: ComponentsOf<T['columns']>;
   readonly table: Table<T>;
   private _index: number = -1;
   private _alive: boolean = true;
@@ -38,14 +38,11 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
   }
 
   constructor(components: ComponentsOf<T['columns']>, table: Table<T>, index: number) {
-    this.components = [...components] as Component[];
+    this.components = [...components];
     this.table = table;
     this._index = index;
     for (const comp of this.components) {
       comp.onAttached(this);
-    }
-    for (const comp of this.components) {
-      comp.onAlive(this);
     }
   }
 
@@ -54,13 +51,10 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     for (const comp of this.components) comp.onDeserialized(this);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  callAlive(): void {
-    this.assertAlive();
-    for (const comp of this.components) comp.onAlive(this);
+  callDetached(): void {
+    for (const comp of this.components) comp.onDetached(this);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callDead(): void {
     this._alive = false;
     for (const comp of this.components) comp.onDead(this);
@@ -107,7 +101,6 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     old.onDetached(this);
     this.components[idx] = value;
     value.onAttached(this);
-    value.onAlive(this);
     return old as InstanceType<Ctor>;
   }
 
@@ -123,7 +116,6 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     old.onDetached(this);
     this.components[idx] = value;
     value.onAttached(this);
-    value.onAlive(this);
     return old;
   }
 
@@ -138,11 +130,10 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
         `Type mismatch: expected ${Expected.name} at index ${index}, got ${valueCtor.name}`,
       );
     }
-    const old = this.components[index];
+    const old = this.components[index] as Component;
     old.onDetached(this);
-    this.components[index] = value;
+    this.components[index] = value as ComponentsOf<T['columns']>[number];
     value.onAttached(this);
-    value.onAlive(this);
     return old;
   }
 

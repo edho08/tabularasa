@@ -4,7 +4,7 @@ import { Entity } from '../entity/entity';
 import type { TableManager } from './manager';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {
-  [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
+  -readonly [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
 };
 
 export class Table<T extends typeof Entity> {
@@ -24,21 +24,22 @@ export class Table<T extends typeof Entity> {
     return entry.weak();
   }
 
-  delete(ref: WeakRef<Entry<T>>): void {
+  delete(ref: WeakRef<Entry<T>>): ComponentsOf<T['columns']> {
     const entry = ref.deref();
-    if (entry === undefined) return;
+    if (entry === undefined) return [] as ComponentsOf<T['columns']>;
     const idx = this.entries.indexOf(entry);
-    if (idx < 0) return;
+    if (idx < 0) return [] as ComponentsOf<T['columns']>;
     entry.callDead();
     // @ts-expect-error - internal field access, Table is the owner of Entry index
     entry._index = -1;
     const last = this.entries.pop();
-    if (last === undefined) return;
+    if (last === undefined) return [] as ComponentsOf<T['columns']>;
     if (last !== entry) {
       // @ts-expect-error - internal field access, Table is the owner of Entry index
       last._index = idx;
       this.entries[idx] = last;
     }
+    return entry.components;
   }
 
   has(entry: Entry<T>): boolean {

@@ -46,7 +46,7 @@ class Actor extends Entity {
 import { World, Table } from 'tabularasa';
 
 const world = new World();
-const table = world.getTable(Actor);
+const table = world.tables.getTable(Actor);
 
 // Insert entries
 const ref = table.insert([new Position(), new Velocity()]);
@@ -162,10 +162,10 @@ World provides serialization/deserialization for all entity tables:
 
 ```ts
 // Serialize all entries for specified entities
-const data = world.serialize([Actor, Enemy]);
+const data = world.tables.serialize([Actor, Enemy]);
 
 // Deserialize (replaces existing entries)
-world.deserialize([Actor, Enemy], data);
+world.tables.deserialize([Actor, Enemy], data);
 ```
 
 ## API Reference

@@ -269,23 +269,23 @@ describe('Option', () => {
       expect(TrackedHealth.detachCalls).toBe(0);
     });
 
-    it('alive propagates to inner value', () => {
+    it('attach propagates to inner value', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
       const table = new Table(ActorWithTrackedHealth, manager);
 
       table.insert([new Position(), new Velocity(), opt]);
 
-      expect(TrackedHealth.aliveCalls).toBe(1);
+      expect(TrackedHealth.attachCalls).toBe(1);
     });
 
-    it('alive does not call on inner when none', () => {
+    it('attach does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
       const table = new Table(ActorWithTrackedHealth, manager);
 
       table.insert([new Position(), new Velocity(), opt]);
 
-      expect(TrackedHealth.aliveCalls).toBe(0);
+      expect(TrackedHealth.attachCalls).toBe(0);
     });
 
     it('dead propagates to inner value', () => {
@@ -302,17 +302,17 @@ describe('Option', () => {
       expect(TrackedHealth.deadCalls).toBe(1);
     });
 
-    it('dead does not call on inner when none', () => {
+    it('detach does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
       const table = new Table(ActorWithTrackedHealth, manager);
       const ref = table.insert([new Position(), new Velocity(), opt]);
       const entry = ref.deref();
       if (!entry) throw new Error('insert failed');
 
-      TrackedHealth.deadCalls = 0;
+      TrackedHealth.detachCalls = 0;
       table.delete(ref);
 
-      expect(TrackedHealth.deadCalls).toBe(0);
+      expect(TrackedHealth.detachCalls).toBe(0);
     });
   });
 

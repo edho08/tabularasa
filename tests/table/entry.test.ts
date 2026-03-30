@@ -517,45 +517,53 @@ describe('Entry', () => {
   });
 
   describe('lifecycle with table', () => {
-    it('set calls alive on new component when entry is in table', () => {
+    it('set calls detach on old and attach on new component when entry is in table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const entry = createEntry(Actor, [pos, vel]);
 
-      TrackedPosition.aliveCalls = 0;
-      TrackedVelocity.aliveCalls = 0;
+      TrackedPosition.detachCalls = 0;
+      TrackedPosition.attachCalls = 0;
+      TrackedVelocity.detachCalls = 0;
+      TrackedVelocity.attachCalls = 0;
 
       const newPos = new TrackedPosition();
       entry.set(Position, newPos);
 
-      expect(TrackedPosition.aliveCalls).toBe(1);
-      expect(TrackedVelocity.aliveCalls).toBe(0);
+      expect(TrackedPosition.detachCalls).toBe(1);
+      expect(TrackedPosition.attachCalls).toBe(1);
+      expect(TrackedVelocity.detachCalls).toBe(0);
+      expect(TrackedVelocity.attachCalls).toBe(0);
     });
 
-    it('setAny calls alive on new component when entry is in table', () => {
+    it('setAny calls detach on old and attach on new component when entry is in table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const entry = createEntry(Actor, [pos, vel]);
 
-      TrackedPosition.aliveCalls = 0;
+      TrackedPosition.detachCalls = 0;
+      TrackedPosition.attachCalls = 0;
 
       const newPos = new TrackedPosition();
       entry.set(Position, newPos);
 
-      expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedPosition.detachCalls).toBe(1);
+      expect(TrackedPosition.attachCalls).toBe(1);
     });
 
-    it('setAt calls alive on new component when entry is in table', () => {
+    it('setAt calls detach on old and attach on new component when entry is in table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const entry = createEntry(Actor, [pos, vel]);
 
-      TrackedPosition.aliveCalls = 0;
+      TrackedPosition.detachCalls = 0;
+      TrackedPosition.attachCalls = 0;
 
       const newPos = new TrackedPosition();
       entry.setAt(0, newPos);
 
-      expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedPosition.detachCalls).toBe(1);
+      expect(TrackedPosition.attachCalls).toBe(1);
     });
   });
 

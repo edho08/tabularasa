@@ -91,11 +91,18 @@ describe('World', () => {
     });
   });
 
-  describe('getTable', () => {
+  describe('tables', () => {
+    it('returns the TableManager resource', () => {
+      const world = new World();
+
+      expect(world.tables).toBeDefined();
+      expect(world.tables).toBeInstanceOf(TableManager);
+    });
+
     it('returns table for entity type', () => {
       const world = new World();
 
-      const table = world.getTable(Actor);
+      const table = world.tables.getTable(Actor);
 
       expect(table).toBeDefined();
       expect(table.entityType).toBe(Actor);
@@ -104,29 +111,18 @@ describe('World', () => {
     it('returns same table on multiple calls', () => {
       const world = new World();
 
-      const table1 = world.getTable(Actor);
-      const table2 = world.getTable(Actor);
+      const table1 = world.tables.getTable(Actor);
+      const table2 = world.tables.getTable(Actor);
 
       expect(table1).toBe(table2);
     });
 
     it('creates entries in the table', () => {
       const world = new World();
-      const table = world.getTable(Actor);
+      const table = world.tables.getTable(Actor);
       const ref = table.insert([new Position(), new Velocity()]);
 
       expect(ref.deref()).toBeDefined();
-    });
-  });
-
-  describe('TableManager integration', () => {
-    it('getTable uses the registered TableManager resource', () => {
-      const world = new World();
-
-      const table = world.getTable(Actor);
-      const manager = world.getResource(TableManager);
-
-      expect(table.manager).toBe(manager);
     });
   });
 });

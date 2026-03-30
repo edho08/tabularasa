@@ -93,7 +93,7 @@ describe('Table', () => {
       expect(table.has(entry)).toBe(true);
     });
 
-    it('calls attach then alive on all components when entry is inserted', () => {
+    it('calls attach on all components when entry is inserted', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const table = new Table(Actor, manager);
@@ -101,9 +101,7 @@ describe('Table', () => {
       table.insert([pos, vel]);
 
       expect(TrackedPosition.attachCalls).toBe(1);
-      expect(TrackedPosition.aliveCalls).toBe(1);
       expect(TrackedVelocity.attachCalls).toBe(1);
-      expect(TrackedVelocity.aliveCalls).toBe(1);
     });
 
     it('returns WeakRef to entry', () => {
@@ -138,12 +136,9 @@ describe('Table', () => {
       const vel = new TrackedVelocity();
       const table = new Table(Actor, manager);
 
-      const ref = table.insert([pos, vel]);
+      table.insert([pos, vel]);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const _entry = ref.deref()!;
-
-      TrackedPosition.aliveCalls = 0;
-      TrackedVelocity.aliveCalls = 0;
+      const ref = table.insert([new TrackedPosition(), new TrackedVelocity()]);
 
       table.delete(ref);
 
@@ -410,7 +405,7 @@ describe('Table', () => {
       expect(table.getAt(1)?.deref()?.get(Velocity).vx).toBe(7);
     });
 
-    it('calls onAttached and onAlive for deserialized components', () => {
+    it('calls onAttached for deserialized components', () => {
       const table = new Table(Actor, manager);
       const data = [
         [
@@ -420,16 +415,12 @@ describe('Table', () => {
       ];
 
       TrackedPosition.attachCalls = 0;
-      TrackedPosition.aliveCalls = 0;
       TrackedVelocity.attachCalls = 0;
-      TrackedVelocity.aliveCalls = 0;
 
       table.deserialize(data);
 
       expect(TrackedPosition.attachCalls).toBe(1);
-      expect(TrackedPosition.aliveCalls).toBe(1);
       expect(TrackedVelocity.attachCalls).toBe(1);
-      expect(TrackedVelocity.aliveCalls).toBe(1);
     });
 
     it('disposes old entries before creating new ones', () => {

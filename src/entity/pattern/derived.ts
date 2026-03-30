@@ -35,10 +35,6 @@ export class DerivedComponent<T extends Component = Component> extends Component
     this.value.onDetached(entry);
   }
 
-  override onAlive(entry: AnyEntry): void {
-    this.value.onAlive(entry);
-  }
-
   override onDead(entry: AnyEntry): void {
     this.value.onDead(entry);
   }

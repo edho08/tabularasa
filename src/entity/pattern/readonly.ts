@@ -20,10 +20,6 @@ export class ReadonlyComponent<T extends Component = Component> extends Componen
     throw new TypeError(`cannot change readonly component`);
   }
 
-  override onAlive(entry: AnyEntry): void {
-    this.value.onAlive(entry);
-  }
-
   override onDead(entry: AnyEntry): void {
     this.value.onDead(entry);
   }

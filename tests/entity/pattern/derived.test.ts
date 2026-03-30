@@ -298,7 +298,7 @@ describe('Derived', () => {
       expect(TrackedPosition.detachCalls).toBe(1);
     });
 
-    it('onAlive propagates to inner value', () => {
+    it('onAttached propagates to inner value', () => {
       const DerivedTracked = Derived(TrackedPosition);
       class ActorWithTracked extends Entity {
         static columns = Columns(DerivedTracked);
@@ -310,7 +310,7 @@ describe('Derived', () => {
 
       table.insert([dp]);
 
-      expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedPosition.attachCalls).toBe(1);
     });
 
     it('onDead propagates to inner value', () => {

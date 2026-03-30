@@ -1,6 +1,4 @@
-import { Entity } from '../entity/entity';
 import { TableManager } from '../table/manager';
-import { Table } from '../table/table';
 import { Resource } from './resource';
 
 export class World {
@@ -19,18 +17,8 @@ export class World {
     resource.attach(this);
   }
 
-  getTable<E extends typeof Entity>(entity: E): Table<E> {
+  get tables(): TableManager {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.getResource(TableManager)!.getTable(entity);
-  }
-
-  serialize(entities: (typeof Entity)[]): unknown[][] {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.getResource(TableManager)!.serialize(entities);
-  }
-
-  deserialize(entities: (typeof Entity)[], data: Record<string, unknown>[][][]): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.getResource(TableManager)!.deserialize(entities, data);
+    return this.getResource(TableManager)!;
   }
 }

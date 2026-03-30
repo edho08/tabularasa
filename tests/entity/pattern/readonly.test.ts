@@ -143,25 +143,27 @@ describe('Readonly', () => {
       );
     });
 
-    it('onAlive propagates to inner value', () => {
+    it('onAttached propagates to inner value', () => {
       const health = new TrackedHealth();
       const ro = new TrackedHealthRo(health);
-      const entry = createEntryWithHealth([new Position(), new Velocity(), ro]);
+      const table = new Table(ActorWithHealth, new TableManager());
+      const ref = table.insert([new Position(), new Velocity(), ro]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
-      TrackedHealth.onAliveCalls = 0;
-      entry.callAlive();
-
-      expect(TrackedHealth.onAliveCalls).toBe(1);
+      expect(TrackedHealth.onAttachedCalls).toBe(1);
     });
 
     it('onDead propagates to inner value', () => {
       const health = new TrackedHealth();
       const ro = new TrackedHealthRo(health);
-      const entry = createEntryWithHealth([new Position(), new Velocity(), ro]);
+      const table = new Table(ActorWithHealth, new TableManager());
+      const ref = table.insert([new Position(), new Velocity(), ro]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       TrackedHealth.onDeadCalls = 0;
-      entry.callAlive();
-      entry.callDead();
+      table.delete(ref);
 
       expect(TrackedHealth.onDeadCalls).toBe(1);
     });
