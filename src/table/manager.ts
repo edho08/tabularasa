@@ -1,7 +1,8 @@
 import { Entity } from '../entity/entity';
+import { Resource } from '../world/resource';
 import { Table } from './table';
 
-export class TableManager {
+export class TableManager extends Resource {
   private tables: Map<typeof Entity, Table<any>> = new Map();
 
   getTable<E extends typeof Entity>(entityType: E): Table<E> {

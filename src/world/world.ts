@@ -5,7 +5,10 @@ import { Resource } from './resource';
 
 export class World {
   private resources = new Map<typeof Resource, Resource>();
-  readonly manager: TableManager = new TableManager();
+
+  constructor() {
+    this.setResource(TableManager, new TableManager());
+  }
 
   getResource<T extends Resource>(type: new (...args: never[]) => T): T | undefined {
     return this.resources.get(type) as T | undefined;
@@ -17,6 +20,7 @@ export class World {
   }
 
   getTable<E extends typeof Entity>(entity: E): Table<E> {
-    return this.manager.getTable(entity);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.getResource(TableManager)!.getTable(entity);
   }
 }
