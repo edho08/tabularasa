@@ -13,14 +13,8 @@ export abstract class Component {
   onDeserialized(_entry: AnyEntry): void {}
 
   serialize(_entry: AnyEntry): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
-    for (const key of Object.keys(this)) {
-      const value = (this as any)[key];
-      if (typeof value !== 'function') {
-        result[key] = value;
-      }
-    }
-    return result;
+    // eslint-disable-next-line no-undef
+    return structuredClone(this) as Record<string, unknown>;
   }
 
   static deserialize(_data: Record<string, unknown>): Component {
