@@ -47,6 +47,39 @@ export class Table<T extends typeof Entity> {
     return this.entries.includes(entry);
   }
 
+  clear(count: number): void {
+    for (const entry of this.entries) {
+      entry.callDead();
+      entry._table = undefined;
+      entry._index = -1;
+    }
+    this.entries = [];
+    for (let i = 0; i < count; i++) {
+      const entry = new Entry(this.entityType, []);
+      entry._table = this;
+      entry._index = i;
+      this.entries.push(entry);
+    }
+  }
+
+  populate(data: Record<string, unknown>[]): void {
+    if (data.length !== this.entries.length)
+      throw new TypeError(
+        `Data length ${data.length} does not match entry count ${this.entries.length}`,
+      );
+    for (let i = 0; i < this.entries.length; i++) {
+      const entry = this.entries[i];
+      const components = this.entityType.columns.map((ctor, j) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (ctor as any).deserialize(data[i][j], entry),
+      );
+      entry.components = components;
+      for (const comp of components) {
+        comp.attach(entry);
+      }
+    }
+  }
+
   getAt(index: number): WeakRef<Entry<T>> | undefined {
     if (index < 0 || index >= this.entries.length) return undefined;
     return this.entries[index].weak();
@@ -66,9 +99,17 @@ export class Table<T extends typeof Entity> {
     entityType: T,
   ): Table<T> {
     const table = new this(entityType);
+    table.clear(data.length);
     for (let i = 0; i < data.length; i++) {
-      const entry = Entry.deserialize(data[i], entityType, table, i);
-      table.entries.push(entry);
+      const entry = table.entries[i];
+      const components = entityType.columns.map((ctor, j) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (ctor as any).deserialize(data[i][j], entry),
+      );
+      entry.components = components;
+      for (const comp of components) {
+        comp.attach(entry);
+      }
     }
     return table;
   }

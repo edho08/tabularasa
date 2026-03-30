@@ -422,50 +422,117 @@ describe('Table', () => {
   describe('deserialize', () => {
     it('reconstructs entry from serialized data', () => {
       const data = [
-        { x: 100, y: 200 },
-        { vx: 3, vy: 4 },
+        [
+          { x: 100, y: 200 },
+          { vx: 3, vy: 4 },
+        ],
+        [
+          { x: 50, y: 60 },
+          { vx: 7, vy: 8 },
+        ],
       ];
 
-      const table = new Table(Actor);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = Entry.deserialize(data, Actor, table, 0) as Entry<any>;
-      table.entries.push(entry);
+      const table = Table.deserialize(data, Actor);
 
-      expect(entry).toBeInstanceOf(Entry);
-      expect(entry.get(Position).x).toBe(100);
-      expect(entry.get(Position).y).toBe(200);
-      expect(entry.get(Velocity).vx).toBe(3);
-      expect(entry.get(Velocity).vy).toBe(4);
+      expect(table).toBeInstanceOf(Table);
+      expect([...table]).toHaveLength(2);
+      expect(table.getAt(0)?.deref()?.get(Position).x).toBe(100);
+      expect(table.getAt(0)?.deref()?.get(Position).y).toBe(200);
+      expect(table.getAt(1)?.deref()?.get(Velocity).vx).toBe(7);
     });
 
-    it('does not attach components during deserialize', () => {
+    it('does not call alive during deserialize', () => {
+      TrackedPosition.aliveCalls = 0;
+      TrackedVelocity.aliveCalls = 0;
+
+      const data = [
+        [
+          { x: 1, y: 2 },
+          { vx: 3, vy: 4 },
+        ],
+      ];
+
+      Table.deserialize(data, Actor);
+
+      expect(TrackedPosition.aliveCalls).toBe(0);
+      expect(TrackedVelocity.aliveCalls).toBe(0);
+    });
+
+    it('attaches components during deserialize', () => {
       TrackedPosition.attachCalls = 0;
       TrackedVelocity.attachCalls = 0;
 
       const data = [
-        { x: 1, y: 2 },
-        { vx: 3, vy: 4 },
+        [
+          { x: 1, y: 2 },
+          { vx: 3, vy: 4 },
+        ],
       ];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Entry.deserialize(data, Actor as any, undefined, undefined);
+      Table.deserialize(data, Actor);
 
-      expect(TrackedPosition.attachCalls).toBe(0);
-      expect(TrackedVelocity.attachCalls).toBe(0);
+      expect(TrackedPosition.attachCalls).toBe(1);
+      expect(TrackedVelocity.attachCalls).toBe(1);
+    });
+  });
+
+  describe('clear', () => {
+    it('creates empty entries', () => {
+      const table = new Table(Actor);
+      table.clear(3);
+
+      expect([...table]).toHaveLength(3);
     });
 
-    it('sets table and index when provided', () => {
+    it('disposes old entries', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+
+      TrackedPosition.deadCalls = 0;
+      TrackedVelocity.deadCalls = 0;
+
+      table.clear(2);
+
+      expect(TrackedPosition.deadCalls).toBe(1);
+      expect(TrackedVelocity.deadCalls).toBe(1);
+    });
+  });
+
+  describe('populate', () => {
+    it('populates entries with data', () => {
+      const table = new Table(Actor);
+      table.clear(2);
       const data = [
-        { x: 1, y: 2 },
-        { vx: 3, vy: 4 },
+        [
+          { x: 100, y: 200 },
+          { vx: 3, vy: 4 },
+        ],
+        [
+          { x: 50, y: 60 },
+          { vx: 7, vy: 8 },
+        ],
       ];
 
-      const table = new Table(Actor);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = Entry.deserialize(data, Actor, table, 5) as Entry<any>;
+      table.populate(data);
 
-      expect(entry.table).toBe(table);
-      expect(entry.index).toBe(5);
+      expect(table.getAt(0)?.deref()?.get(Position).x).toBe(100);
+      expect(table.getAt(1)?.deref()?.get(Velocity).vx).toBe(7);
+    });
+
+    it('throws on length mismatch', () => {
+      const table = new Table(Actor);
+      table.clear(2);
+      const data = [
+        [
+          { x: 100, y: 200 },
+          { vx: 3, vy: 4 },
+        ],
+      ];
+
+      expect(() => table.populate(data)).toThrow(TypeError);
     });
   });
 

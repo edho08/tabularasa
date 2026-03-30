@@ -42,7 +42,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private callAlive(): void {
+  callAlive(): void {
     for (const comp of this.components) comp.alive(this);
   }
 
@@ -138,27 +138,5 @@ export class Entry<T extends typeof Entity> {
 
   serialize(): Record<string, unknown>[] {
     return this.components.map(c => c.serialize(this));
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static deserialize<T extends typeof Entity>(
-    this: new (entityType: T, components: any) => Entry<T>,
-    data: Record<string, unknown>[],
-    entityType: T,
-    table?: Table<T>,
-    index?: number,
-  ): Entry<T> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entry = new this(entityType, [] as any);
-    const components = entityType.columns.map((ctor, i) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (ctor as any).deserialize(data[i], entry),
-    );
-    entry.components = components;
-    if (table && index !== undefined) {
-      entry._table = table;
-      entry._index = index;
-    }
-    return entry;
   }
 }
