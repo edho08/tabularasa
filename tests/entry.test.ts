@@ -587,7 +587,7 @@ describe('Entry', () => {
       const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor);
       table.insert(entry);
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(entry.isAlive).toBe(false);
     });
@@ -618,7 +618,7 @@ describe('Entry', () => {
       const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor);
       table.insert(entry);
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(entry.isAlive).toBe(false);
     });

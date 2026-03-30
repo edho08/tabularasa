@@ -287,7 +287,7 @@ describe('Option', () => {
 
       table.insert(entry);
       TrackedHealth.deadCalls = 0;
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(TrackedHealth.deadCalls).toBe(1);
     });
@@ -299,7 +299,7 @@ describe('Option', () => {
 
       table.insert(entry);
       TrackedHealth.deadCalls = 0;
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(TrackedHealth.deadCalls).toBe(0);
     });

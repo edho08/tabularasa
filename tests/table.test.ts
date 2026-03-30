@@ -143,7 +143,7 @@ describe('Table', () => {
       const table = new Table(Actor);
 
       table.insert(entry);
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(table.has(entry)).toBe(false);
     });
@@ -158,7 +158,7 @@ describe('Table', () => {
       TrackedPosition.aliveCalls = 0;
       TrackedVelocity.aliveCalls = 0;
 
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(TrackedPosition.deadCalls).toBe(1);
       expect(TrackedVelocity.deadCalls).toBe(1);
@@ -170,7 +170,7 @@ describe('Table', () => {
       const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor);
 
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(table.has(entry)).toBe(false);
     });
@@ -188,7 +188,7 @@ describe('Table', () => {
       table.insert(entry1);
       table.insert(entry2);
 
-      table.delete(entry1);
+      table.delete(entry1.weak());
 
       expect(table.has(entry1)).toBe(false);
       expect(table.has(entry2)).toBe(true);
@@ -221,7 +221,7 @@ describe('Table', () => {
       const table = new Table(Actor);
 
       table.insert(entry);
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(table.has(entry)).toBe(false);
     });
@@ -319,7 +319,7 @@ describe('Table', () => {
       const table = new Table(Actor);
 
       table.insert(entry);
-      table.delete(entry);
+      table.delete(entry.weak());
 
       expect(() => entry.index).toThrow(TypeError);
       expect(() => entry.index).toThrow('Entry is not managed by any Table');
@@ -341,7 +341,7 @@ describe('Table', () => {
       expect(entry1.index).toBe(0);
       expect(entry2.index).toBe(1);
 
-      table.delete(entry1);
+      table.delete(entry1.weak());
 
       expect(() => entry1.index).toThrow(TypeError);
       expect(entry2.index).toBe(0);

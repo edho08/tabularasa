@@ -29,7 +29,9 @@ export class Table<T extends typeof Entity> {
     return entry.weak();
   }
 
-  delete(entry: Entry<T>): void {
+  delete(ref: WeakRef<Entry<T>>): void {
+    const entry = ref.deref();
+    if (entry === undefined) return;
     const idx = this.entries.indexOf(entry);
     if (idx < 0) return;
     entry.setTable(undefined);
