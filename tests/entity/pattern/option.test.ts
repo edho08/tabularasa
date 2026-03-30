@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Component } from '../src/entity/component';
-import { Entity } from '../src/entity/entity';
-import { Columns } from '../src/entity/entity';
-import { Entry } from '../src/table/entry';
-import { Table } from '../src/table/table';
-import { Option } from '../src/entity/pattern/option';
+import { Component } from '../../../src/entity/component';
+import { Entity } from '../../../src/entity/entity';
+import { Columns } from '../../../src/entity/entity';
+import { Entry } from '../../../src/table/entry';
+import { Table } from '../../../src/table/table';
+import { Option } from '../../../src/entity/pattern/option';
 
 class Position extends Component {
   x = 0;
