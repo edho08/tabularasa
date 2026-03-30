@@ -419,63 +419,6 @@ describe('Table', () => {
     });
   });
 
-  describe('deserialize', () => {
-    it('reconstructs entry from serialized data', () => {
-      const data = [
-        [
-          { x: 100, y: 200 },
-          { vx: 3, vy: 4 },
-        ],
-        [
-          { x: 50, y: 60 },
-          { vx: 7, vy: 8 },
-        ],
-      ];
-
-      const table = Table.deserialize(data, Actor);
-
-      expect(table).toBeInstanceOf(Table);
-      expect([...table]).toHaveLength(2);
-      expect(table.getAt(0)?.deref()?.get(Position).x).toBe(100);
-      expect(table.getAt(0)?.deref()?.get(Position).y).toBe(200);
-      expect(table.getAt(1)?.deref()?.get(Velocity).vx).toBe(7);
-    });
-
-    it('does not call alive during deserialize', () => {
-      TrackedPosition.aliveCalls = 0;
-      TrackedVelocity.aliveCalls = 0;
-
-      const data = [
-        [
-          { x: 1, y: 2 },
-          { vx: 3, vy: 4 },
-        ],
-      ];
-
-      Table.deserialize(data, Actor);
-
-      expect(TrackedPosition.aliveCalls).toBe(0);
-      expect(TrackedVelocity.aliveCalls).toBe(0);
-    });
-
-    it('attaches components during deserialize', () => {
-      TrackedPosition.attachCalls = 0;
-      TrackedVelocity.attachCalls = 0;
-
-      const data = [
-        [
-          { x: 1, y: 2 },
-          { vx: 3, vy: 4 },
-        ],
-      ];
-
-      Table.deserialize(data, Actor);
-
-      expect(TrackedPosition.attachCalls).toBe(1);
-      expect(TrackedVelocity.attachCalls).toBe(1);
-    });
-  });
-
   describe('clear', () => {
     it('creates empty entries', () => {
       const table = new Table(Actor);
@@ -565,70 +508,6 @@ describe('Table', () => {
         { x: 3, y: 0 },
         { vx: 4, vy: 0 },
       ]);
-    });
-  });
-
-  describe('Table.deserialize', () => {
-    it('reconstructs table from serialized data', () => {
-      const data = [
-        [
-          { x: 10, y: 20 },
-          { vx: 30, vy: 40 },
-        ],
-        [
-          { x: 50, y: 60 },
-          { vx: 70, vy: 80 },
-        ],
-      ];
-
-      const table = Table.deserialize(data, Actor);
-
-      expect(table).toBeInstanceOf(Table);
-      expect([...table]).toHaveLength(2);
-
-      const entries = [...table];
-      expect(entries[0].get(Position).x).toBe(10);
-      expect(entries[0].get(Position).y).toBe(20);
-      expect(entries[1].get(Velocity).vx).toBe(70);
-    });
-
-    it('does not trigger alive during deserialize', () => {
-      TrackedPosition.aliveCalls = 0;
-      TrackedVelocity.aliveCalls = 0;
-
-      const data = [
-        [
-          { x: 1, y: 2 },
-          { vx: 3, vy: 4 },
-        ],
-      ];
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Table.deserialize(data, Actor as any);
-
-      expect(TrackedPosition.aliveCalls).toBe(0);
-      expect(TrackedVelocity.aliveCalls).toBe(0);
-    });
-
-    it('entries have correct table reference and indices', () => {
-      const data = [
-        [
-          { x: 1, y: 2 },
-          { vx: 3, vy: 4 },
-        ],
-        [
-          { x: 5, y: 6 },
-          { vx: 7, vy: 8 },
-        ],
-      ];
-
-      const table = Table.deserialize(data, Actor);
-
-      const entries = [...table];
-      expect(entries[0].table).toBe(table);
-      expect(entries[0].index).toBe(0);
-      expect(entries[1].table).toBe(table);
-      expect(entries[1].index).toBe(1);
     });
   });
 });

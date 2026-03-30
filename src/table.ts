@@ -92,25 +92,4 @@ export class Table<T extends typeof Entity> {
   serialize(): Record<string, unknown>[][] {
     return this.entries.map(entry => entry.serialize());
   }
-
-  static deserialize<T extends typeof Entity>(
-    this: new (entityType: T) => Table<T>,
-    data: Record<string, unknown>[][],
-    entityType: T,
-  ): Table<T> {
-    const table = new this(entityType);
-    table.clear(data.length);
-    for (let i = 0; i < data.length; i++) {
-      const entry = table.entries[i];
-      const components = entityType.columns.map((ctor, j) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (ctor as any).deserialize(data[i][j], entry),
-      );
-      entry.components = components;
-      for (const comp of components) {
-        comp.attach(entry);
-      }
-    }
-    return table;
-  }
 }
