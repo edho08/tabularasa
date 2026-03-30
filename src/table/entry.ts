@@ -1,5 +1,5 @@
-import { Component, ComponentCtor } from './component';
-import { Entity } from './entity';
+import { Component, ComponentCtor } from '../entity/component';
+import { Entity } from '../entity/entity';
 import type { Table } from './table';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {

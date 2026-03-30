@@ -1,13 +1,16 @@
-import { Component } from './component';
-import type { Entry } from './entry';
-import type { ComponentCtor } from './component';
+import { Component } from '../component';
+import type { Entry } from '../../table/entry';
+import type { ComponentCtor } from '../component';
 
-export class Option<T extends Component = Component> extends Component {
+export class OptionComponent<T extends Component = Component> extends Component {
   value?: T;
 
   static ctor: ComponentCtor;
 
-  static create<T extends Component>(this: new (value?: T) => Option<T>, value: T): Option<T> {
+  static create<T extends Component>(
+    this: new (value?: T) => OptionComponent<T>,
+    value: T,
+  ): OptionComponent<T> {
     return new this(value);
   }
 
@@ -62,24 +65,24 @@ export class Option<T extends Component = Component> extends Component {
   }
 
   static override deserialize(
-    this: new (...args: any[]) => Option,
+    this: new (...args: any[]) => OptionComponent,
     data: Record<string, unknown> | null,
-  ): Option {
-    const instance = new this() as Option;
+  ): OptionComponent {
+    const instance = new this() as OptionComponent;
     if (data !== null) {
-      instance.value = this.ctor.deserialize(data) as Option['value'];
+      instance.value = this.ctor.deserialize(data) as OptionComponent['value'];
     }
     return instance;
   }
 }
 
-const optionCache = new WeakMap<ComponentCtor, typeof Option>();
+const optionCache = new WeakMap<ComponentCtor, typeof OptionComponent>();
 
-export function Optional<C extends ComponentCtor>(ctor: C): typeof Option {
+export function Option<C extends ComponentCtor>(ctor: C): typeof OptionComponent {
   let OptionClass = optionCache.get(ctor);
   if (!OptionClass) {
     const name = `Option<${ctor.name}>`;
-    OptionClass = class extends Option {
+    OptionClass = class extends OptionComponent {
       static override name = name;
     };
     OptionClass.ctor = ctor;

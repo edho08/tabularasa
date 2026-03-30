@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Component } from '../src/component';
-import { Entity } from '../src/entity';
-import { Columns } from '../src/entity';
-import { Entry } from '../src/entry';
-import { Table } from '../src/table';
-import { Optional } from '../src/option';
+import { Component } from '../src/entity/component';
+import { Entity } from '../src/entity/entity';
+import { Columns } from '../src/entity/entity';
+import { Entry } from '../src/table/entry';
+import { Table } from '../src/table/table';
+import { Option } from '../src/entity/pattern/option';
 
 class Position extends Component {
   x = 0;
@@ -43,8 +43,8 @@ class TrackedHealth extends Health {
   }
 }
 
-const HealthOpt = Optional(Health);
-const TrackedHealthOpt = Optional(TrackedHealth);
+const HealthOpt = Option(Health);
+const TrackedHealthOpt = Option(TrackedHealth);
 
 class ActorWithHealth extends Entity {
   static columns = Columns(Position, Velocity, HealthOpt);
@@ -348,21 +348,21 @@ describe('Option', () => {
 
   describe('Optional memoization', () => {
     it('returns same class for same constructor', () => {
-      const Opt1 = Optional(Health);
-      const Opt2 = Optional(Health);
+      const Opt1 = Option(Health);
+      const Opt2 = Option(Health);
 
       expect(Opt1).toBe(Opt2);
     });
 
     it('returns different classes for different constructors', () => {
-      const HealthOptClass = Optional(Health);
-      const VelocityOptClass = Optional(Velocity);
+      const HealthOptClass = Option(Health);
+      const VelocityOptClass = Option(Velocity);
 
       expect(HealthOptClass).not.toBe(VelocityOptClass);
     });
 
     it('memoized class has correct name', () => {
-      const Opt = Optional(Health);
+      const Opt = Option(Health);
       const instance = new Opt(new Health());
 
       expect(Opt.name).toBe('Option<Health>');
@@ -370,7 +370,7 @@ describe('Option', () => {
     });
 
     it('memoized class has static ctor pointing to original', () => {
-      const Opt = Optional(Health);
+      const Opt = Option(Health);
 
       expect(Opt.ctor).toBe(Health);
     });

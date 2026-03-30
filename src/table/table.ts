@@ -1,6 +1,6 @@
-import type { ComponentCtor } from './component';
+import type { ComponentCtor } from '../entity/component';
 import { Entry } from './entry';
-import { Entity } from './entity';
+import { Entity } from '../entity/entity';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {
   [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;

@@ -1,6 +1,6 @@
-import { Component } from './component';
-import type { Entry } from './entry';
-import type { ComponentCtor } from './component';
+import { Component } from '../component';
+import type { Entry } from '../../table/entry';
+import type { ComponentCtor } from '../component';
 
 export class ReadonlyComponent<T extends Component = Component> extends Component {
   readonly value: T;

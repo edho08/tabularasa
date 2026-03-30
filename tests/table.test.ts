@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Component } from '../src/component';
-import { Entity } from '../src/entity';
-import { Entry } from '../src/entry';
-import { Columns } from '../src/entity';
-import { Table } from '../src/table';
+import { Component } from '../src/entity/component';
+import { Entity } from '../src/entity/entity';
+import { Entry } from '../src/table/entry';
+import { Columns } from '../src/entity/entity';
+import { Table } from '../src/table/table';
 
 class Position extends Component {
   x = 0;

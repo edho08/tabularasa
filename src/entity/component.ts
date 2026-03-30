@@ -1,4 +1,4 @@
-import type { Entry } from './entry';
+import type { Entry } from '../table/entry';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ComponentCtor = new (...args: any[]) => Component;
