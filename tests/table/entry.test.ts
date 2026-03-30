@@ -3,7 +3,7 @@ import { Component } from '../../src/entity/component';
 import { Entity } from '../../src/entity/entity';
 import { Entry } from '../../src/table/entry';
 import { Columns } from '../../src/entity/entity';
-import { Table } from '../../src/table/manager';
+import { Table } from '../../src/table/table';
 import { TableManager } from '../../src/table/manager';
 
 const manager = new TableManager();

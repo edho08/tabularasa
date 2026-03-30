@@ -1,6 +1,5 @@
 import { Entity } from '../entity/entity';
 import { Table } from './table';
-export { Table };
 
 export class TableManager {
   private tables: Map<typeof Entity, Table<any>> = new Map();

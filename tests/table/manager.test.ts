@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { Component } from '../../src/entity/component';
 import { Entity } from '../../src/entity/entity';
 import { Columns } from '../../src/entity/entity';
-import { Table, TableManager } from '../../src/table/manager';
+import { Table } from '../../src/table/table';
+import { TableManager } from '../../src/table/manager';
 
 class Position extends Component {
   x = 0;
