@@ -33,11 +33,21 @@ export class Entry<T extends typeof Entity> {
     if (this._table === undefined) throw new TypeError('Entry is not managed by any Table');
   }
 
-  constructor(entityType: T, components: ComponentsOf<T['columns']>) {
+  constructor(
+    entityType: T,
+    components: ComponentsOf<T['columns']>,
+    table: Table<T>,
+    index: number,
+  ) {
     this.entityType = entityType;
     this.components = [...components] as Component[];
-    for (const comp of components) {
+    this._table = table;
+    this._index = index;
+    for (const comp of this.components) {
       comp.onAttached(this);
+    }
+    for (const comp of this.components) {
+      comp.onAlive(this);
     }
   }
 
@@ -49,17 +59,6 @@ export class Entry<T extends typeof Entity> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private callDead(): void {
     for (const comp of this.components) comp.onDead(this);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private setTable(t: Table<T> | undefined): void {
-    if (this._table !== undefined && t !== undefined)
-      throw new TypeError(`Entry already belongs to a Table`);
-    if (this._table === undefined && t === undefined)
-      throw new TypeError(`Entry is not in any Table`);
-    this._table = t;
-    if (t !== undefined) this.callAlive();
-    else this.callDead();
   }
 
   get<Ctor extends T['columns'][number]>(ctor: Ctor): InstanceType<Ctor> {

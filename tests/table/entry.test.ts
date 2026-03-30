@@ -520,9 +520,7 @@ describe('Entry', () => {
     it('set calls alive on new component when entry is in table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-      table.insert(entry);
+      const entry = createEntry(Actor, [pos, vel]);
 
       TrackedPosition.aliveCalls = 0;
       TrackedVelocity.aliveCalls = 0;
@@ -537,9 +535,7 @@ describe('Entry', () => {
     it('setAny calls alive on new component when entry is in table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-      table.insert(entry);
+      const entry = createEntry(Actor, [pos, vel]);
 
       TrackedPosition.aliveCalls = 0;
 
@@ -552,9 +548,7 @@ describe('Entry', () => {
     it('setAt calls alive on new component when entry is in table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-      table.insert(entry);
+      const entry = createEntry(Actor, [pos, vel]);
 
       TrackedPosition.aliveCalls = 0;
 
@@ -566,20 +560,10 @@ describe('Entry', () => {
   });
 
   describe('isAlive', () => {
-    it('returns false when entry is not in a table', () => {
-      const pos = new Position();
-      const vel = new Velocity();
-      const entry = new Entry(Actor, [pos, vel]);
-
-      expect(entry.isAlive).toBe(false);
-    });
-
     it('returns true when entry is in a table', () => {
       const pos = new Position();
       const vel = new Velocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-      table.insert(entry);
+      const entry = createEntry(Actor, [pos, vel]);
 
       expect(entry.isAlive).toBe(true);
     });
@@ -587,41 +571,11 @@ describe('Entry', () => {
     it('returns false after deletion', () => {
       const pos = new Position();
       const vel = new Velocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
-      table.insert(entry);
-      table.delete(entry.weak());
-
-      expect(entry.isAlive).toBe(false);
-    });
-  });
-
-  describe('isAlive', () => {
-    it('returns false when entry is not in a table', () => {
-      const pos = new Position();
-      const vel = new Velocity();
-      const entry = new Entry(Actor, [pos, vel]);
-
-      expect(entry.isAlive).toBe(false);
-    });
-
-    it('returns true when entry is in a table', () => {
-      const pos = new Position();
-      const vel = new Velocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-      table.insert(entry);
-
-      expect(entry.isAlive).toBe(true);
-    });
-
-    it('returns false after deletion', () => {
-      const pos = new Position();
-      const vel = new Velocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-      table.insert(entry);
-      table.delete(entry.weak());
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
+      table.delete(ref);
 
       expect(entry.isAlive).toBe(false);
     });

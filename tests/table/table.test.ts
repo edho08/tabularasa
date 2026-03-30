@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Component } from '../../src/entity/component';
 import { Entity } from '../../src/entity/entity';
-import { Entry } from '../../src/table/entry';
 import { Columns } from '../../src/entity/entity';
 import { Table } from '../../src/table/table';
 import { TableManager } from '../../src/table/manager';
@@ -17,10 +16,6 @@ class Position extends Component {
 class Velocity extends Component {
   vx = 0;
   vy = 0;
-}
-
-class Health extends Component {
-  hp = 100;
 }
 
 class TrackedPosition extends Position {
@@ -73,10 +68,6 @@ class Actor extends Entity {
   static columns = Columns(TrackedPosition, TrackedVelocity);
 }
 
-class Enemy extends Entity {
-  static columns = Columns(Position, Velocity, Health);
-}
-
 describe('Table', () => {
   beforeEach(() => {
     TrackedPosition.attachCalls = 0;
@@ -93,48 +84,37 @@ describe('Table', () => {
     it('adds entry to table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
 
       expect(table.has(entry)).toBe(true);
     });
 
-    it('calls alive on all components when entry is inserted', () => {
+    it('calls attach then alive on all components when entry is inserted', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
+      table.insert([pos, vel]);
 
+      expect(TrackedPosition.attachCalls).toBe(1);
       expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedVelocity.attachCalls).toBe(1);
       expect(TrackedVelocity.aliveCalls).toBe(1);
     });
 
-    it('throws when entry already belongs to a table', () => {
+    it('returns WeakRef to entry', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table1 = new Table(Actor, manager);
-      const table2 = new Table(Actor, manager);
-
-      table1.insert(entry);
-
-      expect(() => table2.insert(entry)).toThrow(TypeError);
-      expect(() => table2.insert(entry)).toThrow('Entry already belongs to a Table');
-    });
-
-    it('throws when entity type does not match', () => {
-      const pos = new Position();
-      const vel = new Velocity();
-      const hp = new Health();
-      const entry = new Entry(Enemy, [pos, vel, hp]);
       const table = new Table(Actor, manager);
 
-      expect(() => table.insert(entry)).toThrow(TypeError);
-      expect(() => table.insert(entry)).toThrow("Entry's entity type does not match this Table");
+      const ref = table.insert([pos, vel]);
+
+      expect(ref).toBeInstanceOf(WeakRef);
+      expect(ref.deref()).toBeDefined();
     });
   });
 
@@ -142,11 +122,13 @@ describe('Table', () => {
     it('removes entry from table', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
-      table.delete(entry.weak());
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
+
+      table.delete(ref);
 
       expect(table.has(entry)).toBe(false);
     });
@@ -154,44 +136,36 @@ describe('Table', () => {
     it('calls dead on all components when entry is deleted', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const _entry = ref.deref()!;
+
       TrackedPosition.aliveCalls = 0;
       TrackedVelocity.aliveCalls = 0;
 
-      table.delete(entry.weak());
+      table.delete(ref);
 
       expect(TrackedPosition.deadCalls).toBe(1);
       expect(TrackedVelocity.deadCalls).toBe(1);
     });
 
-    it('does nothing when entry is not in table', () => {
-      const pos = new TrackedPosition();
-      const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
-
-      table.delete(entry.weak());
-
-      expect(table.has(entry)).toBe(false);
-    });
-
     it('swaps-and-pop works correctly with multiple entries', () => {
       const pos1 = new TrackedPosition();
       const vel1 = new TrackedVelocity();
-      const entry1 = new Entry(Actor, [pos1, vel1]);
-
       const pos2 = new TrackedPosition();
       const vel2 = new TrackedVelocity();
-      const entry2 = new Entry(Actor, [pos2, vel2]);
 
       const table = new Table(Actor, manager);
-      table.insert(entry1);
-      table.insert(entry2);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry1 = ref1.deref()!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry2 = ref2.deref()!;
 
-      table.delete(entry1.weak());
+      table.delete(ref1);
 
       expect(table.has(entry1)).toBe(false);
       expect(table.has(entry2)).toBe(true);
@@ -209,10 +183,11 @@ describe('Table', () => {
     it('returns true for inserted entry', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
 
       expect(table.has(entry)).toBe(true);
     });
@@ -220,20 +195,13 @@ describe('Table', () => {
     it('returns false after deletion', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
-      table.delete(entry.weak());
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
 
-      expect(table.has(entry)).toBe(false);
-    });
-
-    it('returns false for entry never inserted', () => {
-      const pos = new TrackedPosition();
-      const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor, manager);
+      table.delete(ref);
 
       expect(table.has(entry)).toBe(false);
     });
@@ -243,22 +211,22 @@ describe('Table', () => {
     it('returns WeakRef for valid index', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
-      table.insert(entry);
+
+      table.insert([pos, vel]);
 
       const ref = table.getAt(0);
 
       expect(ref).toBeInstanceOf(WeakRef);
-      expect(ref?.deref()).toBe(entry);
+      expect(ref?.deref()).toBeDefined();
     });
 
     it('returns undefined for negative index', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
-      table.insert(entry);
+
+      table.insert([pos, vel]);
 
       expect(table.getAt(-1)).toBeUndefined();
     });
@@ -266,9 +234,9 @@ describe('Table', () => {
     it('returns undefined for index >= length', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
-      table.insert(entry);
+
+      table.insert([pos, vel]);
 
       expect(table.getAt(1)).toBeUndefined();
       expect(table.getAt(100)).toBeUndefined();
@@ -277,18 +245,15 @@ describe('Table', () => {
     it('derefd entry matches original after operations', () => {
       const pos1 = new TrackedPosition();
       const vel1 = new TrackedVelocity();
-      const entry1 = new Entry(Actor, [pos1, vel1]);
-
       const pos2 = new TrackedPosition();
       const vel2 = new TrackedVelocity();
-      const entry2 = new Entry(Actor, [pos2, vel2]);
 
       const table = new Table(Actor, manager);
-      table.insert(entry1);
-      table.insert(entry2);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
 
-      expect(table.getAt(0)?.deref()).toBe(entry1);
-      expect(table.getAt(1)?.deref()).toBe(entry2);
+      expect(table.getAt(0)?.deref()).toBe(ref1.deref());
+      expect(table.getAt(1)?.deref()).toBe(ref2.deref());
     });
   });
 
@@ -296,19 +261,20 @@ describe('Table', () => {
     it('iterates over all entries with for...of', () => {
       const pos1 = new TrackedPosition();
       const vel1 = new TrackedVelocity();
-      const entry1 = new Entry(Actor, [pos1, vel1]);
-
       const pos2 = new TrackedPosition();
       const vel2 = new TrackedVelocity();
-      const entry2 = new Entry(Actor, [pos2, vel2]);
 
       const table = new Table(Actor, manager);
-      table.insert(entry1);
-      table.insert(entry2);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry1 = ref1.deref()!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry2 = ref2.deref()!;
 
       const entries = [];
-      for (const entry of table) {
-        entries.push(entry);
+      for (const _entry of table) {
+        entries.push(_entry);
       }
 
       expect(entries).toContain(entry1);
@@ -319,10 +285,11 @@ describe('Table', () => {
     it('can spread into array', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-
       const table = new Table(Actor, manager);
-      table.insert(entry);
+
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
 
       const entries = [...table];
       expect(entries).toContain(entry);
@@ -331,22 +298,14 @@ describe('Table', () => {
   });
 
   describe('index', () => {
-    it('throws before entry is inserted', () => {
-      const pos = new TrackedPosition();
-      const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
-
-      expect(() => entry.index).toThrow(TypeError);
-      expect(() => entry.index).toThrow('Entry is not managed by any Table');
-    });
-
     it('returns correct index after insert', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
 
       expect(entry.index).toBe(0);
     });
@@ -354,15 +313,16 @@ describe('Table', () => {
     it('indices are sequential for multiple entries', () => {
       const pos1 = new TrackedPosition();
       const vel1 = new TrackedVelocity();
-      const entry1 = new Entry(Actor, [pos1, vel1]);
-
       const pos2 = new TrackedPosition();
       const vel2 = new TrackedVelocity();
-      const entry2 = new Entry(Actor, [pos2, vel2]);
 
       const table = new Table(Actor, manager);
-      table.insert(entry1);
-      table.insert(entry2);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry1 = ref1.deref()!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry2 = ref2.deref()!;
 
       expect(entry1.index).toBe(0);
       expect(entry2.index).toBe(1);
@@ -371,11 +331,13 @@ describe('Table', () => {
     it('throws after delete', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
 
-      table.insert(entry);
-      table.delete(entry.weak());
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = ref.deref()!;
+
+      table.delete(ref);
 
       expect(() => entry.index).toThrow(TypeError);
       expect(() => entry.index).toThrow('Entry is not managed by any Table');
@@ -384,20 +346,21 @@ describe('Table', () => {
     it('updates index after swap-pop delete', () => {
       const pos1 = new TrackedPosition();
       const vel1 = new TrackedVelocity();
-      const entry1 = new Entry(Actor, [pos1, vel1]);
-
       const pos2 = new TrackedPosition();
       const vel2 = new TrackedVelocity();
-      const entry2 = new Entry(Actor, [pos2, vel2]);
 
       const table = new Table(Actor, manager);
-      table.insert(entry1);
-      table.insert(entry2);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry1 = ref1.deref()!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry2 = ref2.deref()!;
 
       expect(entry1.index).toBe(0);
       expect(entry2.index).toBe(1);
 
-      table.delete(entry1.weak());
+      table.delete(ref1);
 
       expect(() => entry1.index).toThrow(TypeError);
       expect(entry2.index).toBe(0);
@@ -412,7 +375,11 @@ describe('Table', () => {
       const vel = new Velocity();
       vel.vx = 1;
       vel.vy = 2;
-      const entry = new Entry(Actor, [pos, vel]);
+
+      const table = new Table(Actor, manager);
+      table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const entry = table.getAt(0)!.deref()!;
 
       const data = entry.serialize();
 
@@ -423,19 +390,23 @@ describe('Table', () => {
   });
 
   describe('clear', () => {
-    it('creates empty entries', () => {
+    it('creates empty entries that are alive', () => {
       const table = new Table(Actor, manager);
       table.clear(3);
 
       expect([...table]).toHaveLength(3);
+      for (const entry of table) {
+        expect(entry.isAlive).toBe(true);
+      }
     });
 
-    it('disposes old entries', () => {
+    it('disposing old entries calls dead', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
-      const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor, manager);
-      table.insert(entry);
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const _entry = ref.deref()!;
 
       TrackedPosition.deadCalls = 0;
       TrackedVelocity.deadCalls = 0;
@@ -448,7 +419,7 @@ describe('Table', () => {
   });
 
   describe('populate', () => {
-    it('populates entries with data', () => {
+    it('populates entries with data and calls attach then alive', () => {
       const table = new Table(Actor, manager);
       table.clear(2);
       const data = [
@@ -462,10 +433,20 @@ describe('Table', () => {
         ],
       ];
 
+      TrackedPosition.attachCalls = 0;
+      TrackedPosition.aliveCalls = 0;
+      TrackedVelocity.attachCalls = 0;
+      TrackedVelocity.aliveCalls = 0;
+
       table.populate(data);
 
       expect(table.getAt(0)?.deref()?.get(Position).x).toBe(100);
       expect(table.getAt(1)?.deref()?.get(Velocity).vx).toBe(7);
+
+      expect(TrackedPosition.attachCalls).toBe(2);
+      expect(TrackedPosition.aliveCalls).toBe(2);
+      expect(TrackedVelocity.attachCalls).toBe(2);
+      expect(TrackedVelocity.aliveCalls).toBe(2);
     });
 
     it('throws on length mismatch', () => {
@@ -488,17 +469,14 @@ describe('Table', () => {
       pos1.x = 1;
       const vel1 = new Velocity();
       vel1.vx = 2;
-      const entry1 = new Entry(Actor, [pos1, vel1]);
-
       const pos2 = new Position();
       pos2.x = 3;
       const vel2 = new Velocity();
       vel2.vx = 4;
-      const entry2 = new Entry(Actor, [pos2, vel2]);
 
       const table = new Table(Actor, manager);
-      table.insert(entry1);
-      table.insert(entry2);
+      table.insert([pos1, vel1]);
+      table.insert([pos2, vel2]);
 
       const data = table.serialize();
 

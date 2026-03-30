@@ -298,7 +298,7 @@ describe('Derived', () => {
       const dp = new DerivedTracked(pos);
       const table = new Table(ActorWithTracked, manager);
 
-      table.insert(new Entry(ActorWithTracked, [dp]));
+      table.insert([dp]);
 
       expect(TrackedPosition.aliveCalls).toBe(1);
     });
@@ -312,11 +312,12 @@ describe('Derived', () => {
       const pos = new TrackedPosition();
       const dp = new DerivedTracked(pos);
       const table = new Table(ActorWithTracked, manager);
-      const entry = new Entry(ActorWithTracked, [dp]);
+      const ref = table.insert([dp]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('Failed to insert entry');
 
-      table.insert(entry);
       TrackedPosition.deadCalls = 0;
-      table.delete(entry.weak());
+      table.delete(ref);
 
       expect(TrackedPosition.deadCalls).toBe(1);
     });

@@ -268,7 +268,7 @@ describe('Option', () => {
       const opt = new TrackedHealthOpt(health);
       const table = new Table(ActorWithTrackedHealth, manager);
 
-      table.insert(new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]));
+      table.insert([new Position(), new Velocity(), opt]);
 
       expect(TrackedHealth.aliveCalls).toBe(1);
     });
@@ -277,7 +277,7 @@ describe('Option', () => {
       const opt = new TrackedHealthOpt(undefined);
       const table = new Table(ActorWithTrackedHealth, manager);
 
-      table.insert(new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]));
+      table.insert([new Position(), new Velocity(), opt]);
 
       expect(TrackedHealth.aliveCalls).toBe(0);
     });
@@ -286,11 +286,12 @@ describe('Option', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
       const table = new Table(ActorWithTrackedHealth, manager);
-      const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
+      const ref = table.insert([new Position(), new Velocity(), opt]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
-      table.insert(entry);
       TrackedHealth.deadCalls = 0;
-      table.delete(entry.weak());
+      table.delete(ref);
 
       expect(TrackedHealth.deadCalls).toBe(1);
     });
@@ -298,11 +299,12 @@ describe('Option', () => {
     it('dead does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
       const table = new Table(ActorWithTrackedHealth, manager);
-      const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
+      const ref = table.insert([new Position(), new Velocity(), opt]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
-      table.insert(entry);
       TrackedHealth.deadCalls = 0;
-      table.delete(entry.weak());
+      table.delete(ref);
 
       expect(TrackedHealth.deadCalls).toBe(0);
     });
@@ -313,7 +315,10 @@ describe('Option', () => {
       const health = new Health();
       health.hp = 88;
       const opt = new HealthOpt(health);
-      const entry = new Entry(ActorWithHealth, [new Position(), new Velocity(), opt]);
+      const table = new Table(ActorWithHealth, manager);
+      const ref = table.insert([new Position(), new Velocity(), opt]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       const data = opt.serialize(entry);
 
@@ -322,7 +327,10 @@ describe('Option', () => {
 
     it('returns null when no value', () => {
       const opt = new HealthOpt(undefined);
-      const entry = new Entry(ActorWithHealth, [new Position(), new Velocity(), opt]);
+      const table = new Table(ActorWithHealth, manager);
+      const ref = table.insert([new Position(), new Velocity(), opt]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       const data = opt.serialize(entry);
 

@@ -17,17 +17,8 @@ export class Table<T extends typeof Entity> {
     this.manager = manager;
   }
 
-  insert(componentsOrEntry: ComponentsOf<T['columns']> | Entry<T>): WeakRef<Entry<T>> {
-    let entry: Entry<T>;
-    if (Array.isArray(componentsOrEntry)) {
-      entry = new Entry(this.entityType, componentsOrEntry);
-    } else {
-      entry = componentsOrEntry;
-    }
-    if (entry.entityType !== this.entityType)
-      throw new TypeError(`Entry's entity type does not match this Table`);
-    entry.setTable(this);
-    entry._index = this.entries.length;
+  insert(components: ComponentsOf<T['columns']>): WeakRef<Entry<T>> {
+    const entry = new Entry(this.entityType, components, this, this.entries.length);
     this.entries.push(entry);
     return entry.weak();
   }
@@ -37,7 +28,8 @@ export class Table<T extends typeof Entity> {
     if (entry === undefined) return;
     const idx = this.entries.indexOf(entry);
     if (idx < 0) return;
-    entry.setTable(undefined);
+    entry.callDead();
+    entry._table = undefined;
     entry._index = -1;
     const last = this.entries.pop();
     if (last !== entry) {
@@ -58,9 +50,7 @@ export class Table<T extends typeof Entity> {
     }
     this.entries = [];
     for (let i = 0; i < count; i++) {
-      const entry = new Entry(this.entityType, []);
-      entry._table = this;
-      entry._index = i;
+      const entry = new Entry(this.entityType, [], this, i);
       this.entries.push(entry);
     }
   }
@@ -79,6 +69,9 @@ export class Table<T extends typeof Entity> {
       entry.components = components;
       for (const comp of components) {
         comp.onAttached(entry);
+      }
+      for (const comp of components) {
+        comp.onAlive(entry);
       }
     }
   }
