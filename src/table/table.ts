@@ -1,6 +1,7 @@
 import type { ComponentCtor } from '../entity/component';
 import { Entry } from './entry';
 import { Entity } from '../entity/entity';
+import type { TableManager } from './manager';
 
 type ComponentsOf<C extends readonly ComponentCtor[]> = {
   [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
@@ -8,10 +9,10 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 
 export class Table<T extends typeof Entity> {
   entityType: T;
-  manager: import('./manager').TableManager;
+  manager: TableManager;
   private entries: Entry<T>[] = [];
 
-  constructor(entityType: T, manager: import('./manager').TableManager) {
+  constructor(entityType: T, manager: TableManager) {
     this.entityType = entityType;
     this.manager = manager;
   }
