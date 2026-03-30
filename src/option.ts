@@ -41,20 +41,20 @@ export class Option<T extends Component = Component> extends Component {
     if (this.value === undefined) fn();
   }
 
-  override attach(entry: Entry<any>): void {
-    if (this.value) this.value.attach(entry);
+  override onAttached(entry: Entry<any>): void {
+    if (this.value) this.value.onAttached(entry);
   }
 
-  override detach(entry: Entry<any>): void {
-    if (this.value) this.value.detach(entry);
+  override onDetached(entry: Entry<any>): void {
+    if (this.value) this.value.onDetached(entry);
   }
 
-  override alive(entry: Entry<any>): void {
-    if (this.value) this.value.alive(entry);
+  override onAlive(entry: Entry<any>): void {
+    if (this.value) this.value.onAlive(entry);
   }
 
-  override dead(entry: Entry<any>): void {
-    if (this.value) this.value.dead(entry);
+  override onDead(entry: Entry<any>): void {
+    if (this.value) this.value.onDead(entry);
   }
 
   override serialize(entry: Entry<any>): Record<string, unknown> | null {

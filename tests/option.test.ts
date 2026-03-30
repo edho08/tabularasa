@@ -26,19 +26,19 @@ class TrackedHealth extends Health {
   static aliveCalls = 0;
   static deadCalls = 0;
 
-  override attach(): void {
+  override onAttached(): void {
     TrackedHealth.attachCalls++;
   }
 
-  override detach(): void {
+  override onDetached(): void {
     TrackedHealth.detachCalls++;
   }
 
-  override alive(): void {
+  override onAlive(): void {
     TrackedHealth.aliveCalls++;
   }
 
-  override dead(): void {
+  override onDead(): void {
     TrackedHealth.deadCalls++;
   }
 }
@@ -245,7 +245,7 @@ describe('Option', () => {
       const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
 
       TrackedHealth.detachCalls = 0;
-      opt.detach(entry);
+      opt.onDetached(entry);
 
       expect(TrackedHealth.detachCalls).toBe(1);
     });
@@ -255,7 +255,7 @@ describe('Option', () => {
       const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
 
       TrackedHealth.detachCalls = 0;
-      opt.detach(entry);
+      opt.onDetached(entry);
 
       expect(TrackedHealth.detachCalls).toBe(0);
     });

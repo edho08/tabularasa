@@ -37,19 +37,19 @@ class TrackedComponent extends Component {
   static aliveCalls = 0;
   static deadCalls = 0;
 
-  attach(_entry: any): void {
+  onAttached(_entry: any): void {
     TrackedComponent.attachCalls++;
   }
 
-  detach(_entry: any): void {
+  onDetached(_entry: any): void {
     TrackedComponent.detachCalls++;
   }
 
-  alive(_entry: any): void {
+  onAlive(_entry: any): void {
     TrackedComponent.aliveCalls++;
   }
 
-  dead(_entry: any): void {
+  onDead(_entry: any): void {
     TrackedComponent.deadCalls++;
   }
 }
@@ -60,19 +60,19 @@ class TrackedPosition extends Position {
   static aliveCalls = 0;
   static deadCalls = 0;
 
-  attach(_entry: any): void {
+  onAttached(_entry: any): void {
     TrackedPosition.attachCalls++;
   }
 
-  detach(_entry: any): void {
+  onDetached(_entry: any): void {
     TrackedPosition.detachCalls++;
   }
 
-  alive(_entry: any): void {
+  onAlive(_entry: any): void {
     TrackedPosition.aliveCalls++;
   }
 
-  dead(_entry: any): void {
+  onDead(_entry: any): void {
     TrackedPosition.deadCalls++;
   }
 }
@@ -83,19 +83,19 @@ class TrackedVelocity extends Velocity {
   static aliveCalls = 0;
   static deadCalls = 0;
 
-  attach(_entry: any): void {
+  onAttached(_entry: any): void {
     TrackedVelocity.attachCalls++;
   }
 
-  detach(_entry: any): void {
+  onDetached(_entry: any): void {
     TrackedVelocity.detachCalls++;
   }
 
-  alive(_entry: any): void {
+  onAlive(_entry: any): void {
     TrackedVelocity.aliveCalls++;
   }
 
-  dead(_entry: any): void {
+  onDead(_entry: any): void {
     TrackedVelocity.deadCalls++;
   }
 }

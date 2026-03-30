@@ -75,7 +75,7 @@ export class Table<T extends typeof Entity> {
       );
       entry.components = components;
       for (const comp of components) {
-        comp.attach(entry);
+        comp.onAttached(entry);
       }
     }
   }

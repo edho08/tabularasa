@@ -5,13 +5,13 @@ export type ComponentCtor = new (...args: any[]) => Component;
 
 export abstract class Component {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  attach(_entry: Entry<any>): void {}
+  onAttached(_entry: Entry<any>): void {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  detach(_entry: Entry<any>): void {}
+  onDetached(_entry: Entry<any>): void {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alive(_entry: Entry<any>): void {}
+  onAlive(_entry: Entry<any>): void {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dead(_entry: Entry<any>): void {}
+  onDead(_entry: Entry<any>): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serialize(_entry: Entry<any>): Record<string, unknown> {

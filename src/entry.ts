@@ -37,18 +37,18 @@ export class Entry<T extends typeof Entity> {
     this.entityType = entityType;
     this.components = [...components] as Component[];
     for (const comp of components) {
-      comp.attach(this);
+      comp.onAttached(this);
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callAlive(): void {
-    for (const comp of this.components) comp.alive(this);
+    for (const comp of this.components) comp.onAlive(this);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private callDead(): void {
-    for (const comp of this.components) comp.dead(this);
+    for (const comp of this.components) comp.onDead(this);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,10 +94,10 @@ export class Entry<T extends typeof Entity> {
         `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
       );
     const old = this.components[idx];
-    old.detach(this);
+    old.onDetached(this);
     this.components[idx] = value;
-    value.attach(this);
-    if (this._table !== undefined) value.alive(this);
+    value.onAttached(this);
+    if (this._table !== undefined) value.onAlive(this);
     return old as InstanceType<Ctor>;
   }
 
@@ -110,10 +110,10 @@ export class Entry<T extends typeof Entity> {
         `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
       );
     const old = this.components[idx];
-    old.detach(this);
+    old.onDetached(this);
     this.components[idx] = value;
-    value.attach(this);
-    if (this._table !== undefined) value.alive(this);
+    value.onAttached(this);
+    if (this._table !== undefined) value.onAlive(this);
     return old;
   }
 
@@ -129,10 +129,10 @@ export class Entry<T extends typeof Entity> {
       );
     }
     const old = this.components[index];
-    old.detach(this);
+    old.onDetached(this);
     this.components[index] = value;
-    value.attach(this);
-    if (this._table !== undefined) value.alive(this);
+    value.onAttached(this);
+    if (this._table !== undefined) value.onAlive(this);
     return old;
   }
 
