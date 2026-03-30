@@ -23,4 +23,14 @@ export class World {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.getResource(TableManager)!.getTable(entity);
   }
+
+  serialize(entities: (typeof Entity)[]): unknown[][] {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.getResource(TableManager)!.serialize(entities);
+  }
+
+  deserialize(entities: (typeof Entity)[], data: unknown[][]): void {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.getResource(TableManager)!.deserialize(entities, data);
+  }
 }

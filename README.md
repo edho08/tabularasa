@@ -158,15 +158,14 @@ const ro = new RoHealth(new Health());
 
 ### Serialization
 
-Tables support full serialization/deserialization:
+World provides serialization/deserialization for all entity tables:
 
 ```ts
-// Serialize all entries
-const data = table.serialize();
+// Serialize all entries for specified entities
+const data = world.serialize([Actor, Enemy]);
 
 // Deserialize (replaces existing entries)
-table.deserialize(data);
-table.onDeserialized(); // call onDeserialized hooks
+world.deserialize([Actor, Enemy], data);
 ```
 
 ## API Reference
