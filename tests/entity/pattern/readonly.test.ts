@@ -3,8 +3,10 @@ import { Component } from '../../../src/entity/component';
 import { Entity } from '../../../src/entity/entity';
 import { Columns } from '../../../src/entity/entity';
 import { Entry } from '../../../src/table/entry';
-import { Table } from '../../../src/table/table';
+import { Table, TableManager } from '../../../src/table/manager';
 import { ReadonlyComponent, Readonly } from '../../../src/entity/pattern/readonly';
+
+const manager = new TableManager();
 
 class Position extends Component {
   x = 0;
@@ -63,7 +65,7 @@ describe('Readonly', () => {
   });
 
   function createEntryWithHealth(components: Component[]): Entry<typeof ActorWithHealth> {
-    const table = new Table(ActorWithHealth);
+    const table = new Table(ActorWithHealth, manager);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return table.insert(components).deref()!;
   }

@@ -8,10 +8,12 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 
 export class Table<T extends typeof Entity> {
   entityType: T;
+  manager: import('./manager').TableManager;
   private entries: Entry<T>[] = [];
 
-  constructor(entityType: T) {
+  constructor(entityType: T, manager: import('./manager').TableManager) {
     this.entityType = entityType;
+    this.manager = manager;
   }
 
   insert(componentsOrEntry: ComponentsOf<T['columns']> | Entry<T>): WeakRef<Entry<T>> {

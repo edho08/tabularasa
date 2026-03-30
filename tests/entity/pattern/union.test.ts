@@ -3,8 +3,10 @@ import { Component } from '../../../src/entity/component';
 import { Entity } from '../../../src/entity/entity';
 import { Columns } from '../../../src/entity/entity';
 import { Entry } from '../../../src/table/entry';
-import { Table } from '../../../src/table/table';
+import { Table, TableManager } from '../../../src/table/manager';
 import { Union } from '../../../src/entity/pattern/union';
+
+const manager = new TableManager();
 
 class Position extends Component {
   x = 0;
@@ -143,7 +145,7 @@ describe('Union', () => {
       class ActorWithTracked extends Entity {
         static columns = Columns(UnionTracked);
       }
-      const table = new Table(ActorWithTracked);
+      const table = new Table(ActorWithTracked, manager);
       const ref = table.insert([new UnionTracked(tracked)]);
       const entry = ref.deref();
       if (!entry) throw new Error('insert failed');
@@ -160,7 +162,7 @@ describe('Union', () => {
       class ActorWithTracked extends Entity {
         static columns = Columns(UnionTracked);
       }
-      const table = new Table(ActorWithTracked);
+      const table = new Table(ActorWithTracked, manager);
 
       table.insert([new UnionTracked(tracked)]);
 
@@ -173,7 +175,7 @@ describe('Union', () => {
       class ActorWithTracked extends Entity {
         static columns = Columns(UnionTracked);
       }
-      const table = new Table(ActorWithTracked);
+      const table = new Table(ActorWithTracked, manager);
       const ref = table.insert([new UnionTracked(tracked)]);
 
       TrackedPosition.deadCalls = 0;
@@ -276,7 +278,7 @@ describe('Union', () => {
 
   describe('in Entry', () => {
     function createEntryWithPosition(): Entry<typeof ActorWithUnion> {
-      const table = new Table(ActorWithUnion);
+      const table = new Table(ActorWithUnion, manager);
       const pos = new Position();
       pos.x = 1;
       pos.y = 2;
@@ -289,7 +291,7 @@ describe('Union', () => {
     }
 
     function createEntryWithVelocity(): Entry<typeof ActorWithUnion> {
-      const table = new Table(ActorWithUnion);
+      const table = new Table(ActorWithUnion, manager);
       const vel = new Velocity();
       vel.vx = 3;
       vel.vy = 4;

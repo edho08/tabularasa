@@ -3,8 +3,11 @@ import { Component } from '../../../src/entity/component';
 import { Entity } from '../../../src/entity/entity';
 import { Columns } from '../../../src/entity/entity';
 import { Entry } from '../../../src/table/entry';
-import { Table } from '../../../src/table/table';
+import { Table } from '../../../src/table/manager';
+import { TableManager } from '../../../src/table/manager';
 import { Option } from '../../../src/entity/pattern/option';
+
+const manager = new TableManager();
 
 class Position extends Component {
   x = 0;
@@ -63,7 +66,7 @@ describe('Option', () => {
   });
 
   function createEntryWithHealth(components: Component[]): Entry<typeof ActorWithHealth> {
-    const table = new Table(ActorWithHealth);
+    const table = new Table(ActorWithHealth, manager);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return table.insert(components).deref()!;
   }
@@ -263,7 +266,7 @@ describe('Option', () => {
     it('alive propagates to inner value', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
-      const table = new Table(ActorWithTrackedHealth);
+      const table = new Table(ActorWithTrackedHealth, manager);
 
       table.insert(new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]));
 
@@ -272,7 +275,7 @@ describe('Option', () => {
 
     it('alive does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
-      const table = new Table(ActorWithTrackedHealth);
+      const table = new Table(ActorWithTrackedHealth, manager);
 
       table.insert(new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]));
 
@@ -282,7 +285,7 @@ describe('Option', () => {
     it('dead propagates to inner value', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
-      const table = new Table(ActorWithTrackedHealth);
+      const table = new Table(ActorWithTrackedHealth, manager);
       const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
 
       table.insert(entry);
@@ -294,7 +297,7 @@ describe('Option', () => {
 
     it('dead does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
-      const table = new Table(ActorWithTrackedHealth);
+      const table = new Table(ActorWithTrackedHealth, manager);
       const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
 
       table.insert(entry);

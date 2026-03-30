@@ -3,8 +3,10 @@ import { Component } from '../../../src/entity/component';
 import { Entity } from '../../../src/entity/entity';
 import { Columns } from '../../../src/entity/entity';
 import { Entry } from '../../../src/table/entry';
-import { Table } from '../../../src/table/table';
+import { Table, TableManager } from '../../../src/table/manager';
 import { Derived } from '../../../src/entity/pattern/derived';
+
+const manager = new TableManager();
 
 class Position extends Component {
   x = 0;
@@ -293,7 +295,7 @@ describe('Derived', () => {
 
       const pos = new TrackedPosition();
       const dp = new DerivedTracked(pos);
-      const table = new Table(ActorWithTracked);
+      const table = new Table(ActorWithTracked, manager);
 
       table.insert(new Entry(ActorWithTracked, [dp]));
 
@@ -308,7 +310,7 @@ describe('Derived', () => {
 
       const pos = new TrackedPosition();
       const dp = new DerivedTracked(pos);
-      const table = new Table(ActorWithTracked);
+      const table = new Table(ActorWithTracked, manager);
       const entry = new Entry(ActorWithTracked, [dp]);
 
       table.insert(entry);
@@ -321,7 +323,7 @@ describe('Derived', () => {
 
   describe('in Entry', () => {
     function createEntry(): Entry<typeof ActorWithDerived> {
-      const table = new Table(ActorWithDerived);
+      const table = new Table(ActorWithDerived, manager);
       const pos = new Position();
       const vel = new Velocity();
       const pos3d = new Position3D();
@@ -427,7 +429,7 @@ describe('Derived', () => {
       pos3d.z = 3;
       const dp = new DerivedPosPoly(pos3d);
 
-      const table = new Table(ActorWithPolymorphic);
+      const table = new Table(ActorWithPolymorphic, manager);
       const ref = table.insert([dp]);
       const entry = ref.deref();
       if (!entry) throw new Error('insert failed');

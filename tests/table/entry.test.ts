@@ -3,7 +3,10 @@ import { Component } from '../../src/entity/component';
 import { Entity } from '../../src/entity/entity';
 import { Entry } from '../../src/table/entry';
 import { Columns } from '../../src/entity/entity';
-import { Table } from '../../src/table/table';
+import { Table } from '../../src/table/manager';
+import { TableManager } from '../../src/table/manager';
+
+const manager = new TableManager();
 
 class Position extends Component {
   x = 0;
@@ -117,7 +120,7 @@ describe('Entry', () => {
   });
 
   function createEntry<T extends typeof Entity>(entityType: T, components: Component[]): Entry<T> {
-    const table = new Table(entityType);
+    const table = new Table(entityType, manager);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return table.insert(components).deref()!;
   }
@@ -518,7 +521,7 @@ describe('Entry', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
 
       TrackedPosition.aliveCalls = 0;
@@ -535,7 +538,7 @@ describe('Entry', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
 
       TrackedPosition.aliveCalls = 0;
@@ -550,7 +553,7 @@ describe('Entry', () => {
       const pos = new TrackedPosition();
       const vel = new TrackedVelocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
 
       TrackedPosition.aliveCalls = 0;
@@ -575,7 +578,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
 
       expect(entry.isAlive).toBe(true);
@@ -585,7 +588,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
       table.delete(entry.weak());
 
@@ -606,7 +609,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
 
       expect(entry.isAlive).toBe(true);
@@ -616,7 +619,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const entry = new Entry(Actor, [pos, vel]);
-      const table = new Table(Actor);
+      const table = new Table(Actor, manager);
       table.insert(entry);
       table.delete(entry.weak());
 
