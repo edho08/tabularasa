@@ -1,10 +1,7 @@
-export { Component } from './entity/component';
-export type { ComponentCtor } from './entity/component';
-export { Entity, Columns } from './entity/entity';
-export { Entry } from './table/entry';
-export type { AnyEntry } from './table/entry';
-export { Table } from './table/table';
-export { TableManager } from './table/manager';
+export { Component, Entity, Columns } from './entity';
+export type { ComponentCtor } from './entity';
+export { Entry, Table, TableManager } from './table';
+export type { AnyEntry } from './table';
 export { Resource, World } from './world';
 export { Option, OptionComponent } from './entity/pattern/option';
 export { Union, UnionComponent } from './entity/pattern/union';
