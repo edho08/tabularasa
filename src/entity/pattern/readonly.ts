@@ -28,6 +28,10 @@ export class ReadonlyComponent<T extends Component = Component> extends Componen
     this.value.onDead(entry);
   }
 
+  override onDeserialized(entry: Entry<any>): void {
+    this.value.onDeserialized(entry);
+  }
+
   override serialize(entry: Entry<any>): Record<string, unknown> {
     return this.value.serialize(entry);
   }

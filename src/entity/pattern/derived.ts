@@ -43,6 +43,10 @@ export class DerivedComponent<T extends Component = Component> extends Component
     this.value.onDead(entry);
   }
 
+  override onDeserialized(entry: Entry<any>): void {
+    this.value.onDeserialized(entry);
+  }
+
   override serialize(entry: Entry<any>): { type: string; data: Record<string, unknown> } {
     return {
       type: this.value.constructor.name,

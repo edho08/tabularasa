@@ -9,12 +9,9 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 export class Entry<T extends typeof Entity> {
   entityType: T;
   components: Component[];
-  private _table?: Table<T>;
+  readonly table: Table<T>;
   private _index: number = -1;
-
-  get table(): Table<T> | undefined {
-    return this._table;
-  }
+  private _alive: boolean = true;
 
   get index(): number {
     this.assertAlive();
@@ -22,7 +19,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   get isAlive(): boolean {
-    return this._table !== undefined;
+    return this._alive;
   }
 
   weak(): WeakRef<Entry<T>> {
@@ -30,7 +27,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   private assertAlive(): void {
-    if (this._table === undefined) throw new TypeError('Entry is not managed by any Table');
+    if (!this._alive) throw new TypeError('Entry is not managed by any Table');
   }
 
   constructor(
@@ -41,7 +38,7 @@ export class Entry<T extends typeof Entity> {
   ) {
     this.entityType = entityType;
     this.components = [...components] as Component[];
-    this._table = table;
+    this.table = table;
     this._index = index;
     for (const comp of this.components) {
       comp.onAttached(this);
@@ -51,13 +48,20 @@ export class Entry<T extends typeof Entity> {
     }
   }
 
+  callDeserialized(): void {
+    this.assertAlive();
+    for (const comp of this.components) comp.onDeserialized(this);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callAlive(): void {
+    this.assertAlive();
     for (const comp of this.components) comp.onAlive(this);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private callDead(): void {
+  callDead(): void {
+    this._alive = false;
     for (const comp of this.components) comp.onDead(this);
   }
 
@@ -72,6 +76,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   getAt<I extends number>(index: I): InstanceType<T['columns'][I]> {
+    this.assertAlive();
     if (index < 0 || index >= this.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
     return this.components[index] as InstanceType<T['columns'][I]>;
@@ -96,7 +101,7 @@ export class Entry<T extends typeof Entity> {
     old.onDetached(this);
     this.components[idx] = value;
     value.onAttached(this);
-    if (this._table !== undefined) value.onAlive(this);
+    value.onAlive(this);
     return old as InstanceType<Ctor>;
   }
 
@@ -112,7 +117,7 @@ export class Entry<T extends typeof Entity> {
     old.onDetached(this);
     this.components[idx] = value;
     value.onAttached(this);
-    if (this._table !== undefined) value.onAlive(this);
+    value.onAlive(this);
     return old;
   }
 
@@ -131,7 +136,7 @@ export class Entry<T extends typeof Entity> {
     old.onDetached(this);
     this.components[index] = value;
     value.onAttached(this);
-    if (this._table !== undefined) value.onAlive(this);
+    value.onAlive(this);
     return old;
   }
 

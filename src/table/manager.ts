@@ -16,4 +16,31 @@ export class TableManager {
   hasTable<E extends typeof Entity>(entityType: E): boolean {
     return this.tables.has(entityType);
   }
+
+  serialize(entities: (typeof Entity)[]): unknown[][] {
+    const result: unknown[][] = [];
+    for (const entity of entities) {
+      const table = this.tables.get(entity);
+      if (!table) throw new TypeError(`No table for entity ${entity.name}`);
+      result.push(table.serialize());
+    }
+    return result;
+  }
+
+  deserialize(entities: (typeof Entity)[], data: unknown[][]): void {
+    if (entities.length !== data.length)
+      throw new TypeError(
+        `Entity count ${entities.length} does not match data length ${data.length}`,
+      );
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      const table = this.tables.get(entity);
+      if (!table) throw new TypeError(`No table for entity ${entity.name}`);
+      table.deserialize(data[i] as Record<string, unknown>[]);
+    }
+    for (const entity of entities) {
+      const table = this.tables.get(entity);
+      if (table) table.onDeserialized();
+    }
+  }
 }

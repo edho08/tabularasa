@@ -60,6 +60,10 @@ export class OptionComponent<T extends Component = Component> extends Component 
     if (this.value) this.value.onDead(entry);
   }
 
+  override onDeserialized(entry: Entry<any>): void {
+    if (this.value) this.value.onDeserialized(entry);
+  }
+
   override serialize(entry: Entry<any>): Record<string, unknown> | null {
     return this.value ? this.value.serialize(entry) : null;
   }

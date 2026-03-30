@@ -389,39 +389,9 @@ describe('Table', () => {
     });
   });
 
-  describe('clear', () => {
-    it('creates empty entries that are alive', () => {
+  describe('deserialize', () => {
+    it('creates entries with deserialized components', () => {
       const table = new Table(Actor, manager);
-      table.clear(3);
-
-      expect([...table]).toHaveLength(3);
-      for (const entry of table) {
-        expect(entry.isAlive).toBe(true);
-      }
-    });
-
-    it('disposing old entries calls dead', () => {
-      const pos = new TrackedPosition();
-      const vel = new TrackedVelocity();
-      const table = new Table(Actor, manager);
-      const ref = table.insert([pos, vel]);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const _entry = ref.deref()!;
-
-      TrackedPosition.deadCalls = 0;
-      TrackedVelocity.deadCalls = 0;
-
-      table.clear(2);
-
-      expect(TrackedPosition.deadCalls).toBe(1);
-      expect(TrackedVelocity.deadCalls).toBe(1);
-    });
-  });
-
-  describe('populate', () => {
-    it('populates entries with data and calls attach then alive', () => {
-      const table = new Table(Actor, manager);
-      table.clear(2);
       const data = [
         [
           { x: 100, y: 200 },
@@ -433,25 +403,15 @@ describe('Table', () => {
         ],
       ];
 
-      TrackedPosition.attachCalls = 0;
-      TrackedPosition.aliveCalls = 0;
-      TrackedVelocity.attachCalls = 0;
-      TrackedVelocity.aliveCalls = 0;
+      table.deserialize(data);
 
-      table.populate(data);
-
+      expect([...table]).toHaveLength(2);
       expect(table.getAt(0)?.deref()?.get(Position).x).toBe(100);
       expect(table.getAt(1)?.deref()?.get(Velocity).vx).toBe(7);
-
-      expect(TrackedPosition.attachCalls).toBe(2);
-      expect(TrackedPosition.aliveCalls).toBe(2);
-      expect(TrackedVelocity.attachCalls).toBe(2);
-      expect(TrackedVelocity.aliveCalls).toBe(2);
     });
 
-    it('throws on length mismatch', () => {
+    it('calls onAttached and onAlive for deserialized components', () => {
       const table = new Table(Actor, manager);
-      table.clear(2);
       const data = [
         [
           { x: 100, y: 200 },
@@ -459,7 +419,81 @@ describe('Table', () => {
         ],
       ];
 
-      expect(() => table.populate(data)).toThrow(TypeError);
+      TrackedPosition.attachCalls = 0;
+      TrackedPosition.aliveCalls = 0;
+      TrackedVelocity.attachCalls = 0;
+      TrackedVelocity.aliveCalls = 0;
+
+      table.deserialize(data);
+
+      expect(TrackedPosition.attachCalls).toBe(1);
+      expect(TrackedPosition.aliveCalls).toBe(1);
+      expect(TrackedVelocity.attachCalls).toBe(1);
+      expect(TrackedVelocity.aliveCalls).toBe(1);
+    });
+
+    it('disposes old entries before creating new ones', () => {
+      const pos = new TrackedPosition();
+      const vel = new TrackedVelocity();
+      const table = new Table(Actor, manager);
+      const ref = table.insert([pos, vel]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const _oldEntry = ref.deref()!;
+
+      TrackedPosition.deadCalls = 0;
+      TrackedVelocity.deadCalls = 0;
+
+      const data = [
+        [
+          { x: 100, y: 200 },
+          { vx: 3, vy: 4 },
+        ],
+      ];
+
+      table.deserialize(data);
+
+      expect(TrackedPosition.deadCalls).toBe(1);
+      expect(TrackedVelocity.deadCalls).toBe(1);
+    });
+  });
+
+  describe('onDeserialized', () => {
+    it('calls onDeserialized on all entries', () => {
+      class TrackedPositionWithDeserialize extends TrackedPosition {
+        static deserializedCalls = 0;
+        onDeserialized(): void {
+          TrackedPositionWithDeserialize.deserializedCalls++;
+        }
+      }
+
+      class TrackedVelocityWithDeserialize extends TrackedVelocity {
+        static deserializedCalls = 0;
+        onDeserialized(): void {
+          TrackedVelocityWithDeserialize.deserializedCalls++;
+        }
+      }
+
+      class ActorWithDeserialize extends Entity {
+        static columns = Columns(TrackedPositionWithDeserialize, TrackedVelocityWithDeserialize);
+      }
+
+      const table2 = new Table(ActorWithDeserialize, manager);
+      const data = [
+        [
+          { x: 100, y: 200 },
+          { vx: 3, vy: 4 },
+        ],
+      ];
+
+      table2.deserialize(data);
+
+      TrackedPositionWithDeserialize.deserializedCalls = 0;
+      TrackedVelocityWithDeserialize.deserializedCalls = 0;
+
+      table2.onDeserialized();
+
+      expect(TrackedPositionWithDeserialize.deserializedCalls).toBe(1);
+      expect(TrackedVelocityWithDeserialize.deserializedCalls).toBe(1);
     });
   });
 

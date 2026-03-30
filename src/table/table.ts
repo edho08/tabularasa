@@ -29,7 +29,6 @@ export class Table<T extends typeof Entity> {
     const idx = this.entries.indexOf(entry);
     if (idx < 0) return;
     entry.callDead();
-    entry._table = undefined;
     entry._index = -1;
     const last = this.entries.pop();
     if (last !== entry) {
@@ -42,37 +41,25 @@ export class Table<T extends typeof Entity> {
     return this.entries.includes(entry);
   }
 
-  clear(count: number): void {
+  deserialize(data: Record<string, unknown>[]): void {
     for (const entry of this.entries) {
       entry.callDead();
-      entry._table = undefined;
-      entry._index = -1;
     }
     this.entries = [];
-    for (let i = 0; i < count; i++) {
-      const entry = new Entry(this.entityType, [], this, i);
+    for (let i = 0; i < data.length; i++) {
+      const entryData = data[i];
+      const components = this.entityType.columns.map((ctor, j) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (ctor as any).deserialize(entryData[j]),
+      );
+      const entry = new Entry(this.entityType, components, this, i);
       this.entries.push(entry);
     }
   }
 
-  populate(data: Record<string, unknown>[]): void {
-    if (data.length !== this.entries.length)
-      throw new TypeError(
-        `Data length ${data.length} does not match entry count ${this.entries.length}`,
-      );
-    for (let i = 0; i < this.entries.length; i++) {
-      const entry = this.entries[i];
-      const components = this.entityType.columns.map((ctor, j) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (ctor as any).deserialize(data[i][j], entry),
-      );
-      entry.components = components;
-      for (const comp of components) {
-        comp.onAttached(entry);
-      }
-      for (const comp of components) {
-        comp.onAlive(entry);
-      }
+  onDeserialized(): void {
+    for (const entry of this.entries) {
+      entry.callDeserialized();
     }
   }
 

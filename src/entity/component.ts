@@ -12,6 +12,8 @@ export abstract class Component {
   onAlive(_entry: Entry<any>): void {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDead(_entry: Entry<any>): void {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onDeserialized(_entry: Entry<any>): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serialize(_entry: Entry<any>): Record<string, unknown> {
@@ -29,7 +31,6 @@ export abstract class Component {
   static deserialize<T extends Component>(
     this: new (...args: any[]) => T,
     _data: Record<string, unknown>,
-    _entry?: Entry<any>,
   ): T {
     const instance = Object.create(this.prototype);
     for (const [key, value] of Object.entries(_data)) {

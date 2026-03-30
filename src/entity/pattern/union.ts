@@ -39,6 +39,10 @@ export class UnionComponent<T extends Component = Component> extends Component {
     this.value.onDead(entry);
   }
 
+  override onDeserialized(entry: Entry<any>): void {
+    this.value.onDeserialized(entry);
+  }
+
   override serialize(entry: Entry<any>): { type: number; data: Record<string, unknown> } {
     const idx = (this.constructor as typeof UnionComponent).ctors.indexOf(
       this.value.constructor as ComponentCtor,
