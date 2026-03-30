@@ -116,11 +116,17 @@ describe('Entry', () => {
     TrackedVelocity.deadCalls = 0;
   });
 
+  function createEntry<T extends typeof Entity>(entityType: T, components: Component[]): Entry<T> {
+    const table = new Table(entityType);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return table.insert(components).deref()!;
+  }
+
   describe('typed Entry<Actor>', () => {
     it('can be created with entity type and components', () => {
       const pos = new Position();
       const vel = new Velocity();
-      const actor = new Entry(Actor, [pos, vel]);
+      const actor = createEntry(Actor, [pos, vel]);
       expect(actor).toBeDefined();
       expect(actor.components).toHaveLength(2);
     });
@@ -133,7 +139,7 @@ describe('Entry', () => {
         const vel = new Velocity();
         vel.vx = 1;
         vel.vy = 2;
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         const found = actor.get(Position);
         expect(found).toBe(pos);
@@ -144,7 +150,7 @@ describe('Entry', () => {
       it('throws for missing component', () => {
         const pos = new Position();
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         expect(() => actor.get(Health)).toThrow(TypeError);
         expect(() => actor.get(Health)).toThrow('Component Health is not in component set of');
@@ -157,7 +163,7 @@ describe('Entry', () => {
         pos.x = 100;
         const vel = new Velocity();
         vel.vx = 50;
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         const found0 = actor.getAt(0);
         const found1 = actor.getAt(1);
@@ -171,7 +177,7 @@ describe('Entry', () => {
       it('throws for negative index', () => {
         const pos = new Position();
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         expect(() => actor.getAt(-1)).toThrow(TypeError);
         expect(() => actor.getAt(-1)).toThrow('Index -1 is out of bounds');
@@ -180,7 +186,7 @@ describe('Entry', () => {
       it('throws for index >= length', () => {
         const pos = new Position();
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         expect(() => actor.getAt(2)).toThrow(TypeError);
         expect(() => actor.getAt(2)).toThrow('Index 2 is out of bounds');
@@ -194,7 +200,7 @@ describe('Entry', () => {
         const pos = new Position();
         pos.x = 1;
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         const newPos = new Position();
         newPos.x = 999;
@@ -211,7 +217,7 @@ describe('Entry', () => {
 
       it('throws for missing component', () => {
         const pos = new Position();
-        const actor = new Entry(Actor, [pos, new Velocity()]);
+        const actor = createEntry(Actor, [pos, new Velocity()]);
 
         const newHealth = new Health();
         expect(() => actor.set(Health, newHealth)).toThrow(TypeError);
@@ -226,7 +232,7 @@ describe('Entry', () => {
         const pos = new Position();
         pos.x = 1;
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         const newPos = new Position();
         newPos.x = 777;
@@ -243,7 +249,7 @@ describe('Entry', () => {
 
       it('throws for value constructor not in columns', () => {
         const pos = new Position();
-        const actor = new Entry(Actor, [pos, new Velocity()]);
+        const actor = createEntry(Actor, [pos, new Velocity()]);
 
         const unused = new Unused();
         expect(() => actor.setAny(unused)).toThrow(TypeError);
@@ -256,7 +262,7 @@ describe('Entry', () => {
         const pos = new Position();
         pos.x = 1;
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         const newPos = new Position();
         newPos.x = 888;
@@ -273,7 +279,7 @@ describe('Entry', () => {
 
       it('throws for index out of bounds', () => {
         const pos = new Position();
-        const actor = new Entry(Actor, [pos, new Velocity()]);
+        const actor = createEntry(Actor, [pos, new Velocity()]);
 
         const newVel = new Velocity();
         expect(() => actor.setAt(2, newVel)).toThrow(TypeError);
@@ -285,7 +291,7 @@ describe('Entry', () => {
       it('throws for type mismatch at index', () => {
         const pos = new Position();
         const vel = new Velocity();
-        const actor = new Entry(Actor, [pos, vel]);
+        const actor = createEntry(Actor, [pos, vel]);
 
         const wrong = new Health();
         expect(() => actor.setAt(0, wrong)).toThrow(TypeError);
@@ -306,14 +312,14 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = new Entry(Actor, [pos, vel]) as Entry<any>;
+      const entry = createEntry(Actor, [pos, vel]) as Entry<any>;
       expect(entry).toBeDefined();
     });
 
     it('get works with any component class', () => {
       const pos = new Position();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = new Entry(Actor, [pos, new Velocity()]) as Entry<any>;
+      const entry = createEntry(Actor, [pos, new Velocity()]) as Entry<any>;
 
       const found = entry.get(Position);
       expect(found).toBe(pos);
@@ -325,7 +331,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = new Entry(Actor, [pos, vel]) as Entry<any>;
+      const entry = createEntry(Actor, [pos, vel]) as Entry<any>;
 
       expect(entry.getAt(0)).toBe(pos);
       expect(entry.getAt(1)).toBe(vel);
@@ -336,7 +342,7 @@ describe('Entry', () => {
     it('set works with any component', () => {
       const pos = new Position();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = new Entry(Actor, [pos, new Velocity()]) as Entry<any>;
+      const entry = createEntry(Actor, [pos, new Velocity()]) as Entry<any>;
 
       const newPos = new Position();
       newPos.x = 123;
@@ -350,7 +356,7 @@ describe('Entry', () => {
     it('setAny works with any component', () => {
       const pos = new Position();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = new Entry(Actor, [pos, new Velocity()]) as Entry<any>;
+      const entry = createEntry(Actor, [pos, new Velocity()]) as Entry<any>;
 
       const newPos = new Position();
       newPos.x = 456;
@@ -364,7 +370,7 @@ describe('Entry', () => {
     it('setAt works with any index but still checks type at runtime', () => {
       const pos = new Position();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = new Entry(Actor, [pos, new Velocity()]) as Entry<any>;
+      const entry = createEntry(Actor, [pos, new Velocity()]) as Entry<any>;
 
       const newVel = new Velocity();
 
@@ -380,7 +386,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const hp = new Health();
-      const enemy = new Entry(Enemy, [pos, vel, hp]);
+      const enemy = createEntry(Enemy, [pos, vel, hp]);
 
       expect(enemy.get(Position)).toBe(pos);
       expect(enemy.get(Velocity)).toBe(vel);
@@ -395,7 +401,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const hp = new Health();
-      const enemy = new Entry(Enemy, [pos, vel, hp]);
+      const enemy = createEntry(Enemy, [pos, vel, hp]);
 
       const newPos = new Position();
       expect(enemy.setAt(0, newPos)).toBe(pos);
@@ -422,7 +428,7 @@ describe('Entry', () => {
     it('returns true for component that exists', () => {
       const pos = new Position();
       const vel = new Velocity();
-      const actor = new Entry(Actor, [pos, vel]);
+      const actor = createEntry(Actor, [pos, vel]);
 
       expect(actor.has(Position)).toBe(true);
       expect(actor.has(Velocity)).toBe(true);
@@ -431,7 +437,7 @@ describe('Entry', () => {
     it('returns false for component that does not exist', () => {
       const pos = new Position();
       const vel = new Velocity();
-      const actor = new Entry(Actor, [pos, vel]);
+      const actor = createEntry(Actor, [pos, vel]);
 
       expect(actor.has(Health)).toBe(false);
     });
@@ -442,7 +448,7 @@ describe('Entry', () => {
       it('calls attach on all components', () => {
         const pos = new TrackedPosition();
         const vel = new TrackedVelocity();
-        new Entry(Actor, [pos, vel]);
+        createEntry(Actor, [pos, vel]);
 
         expect(TrackedPosition.attachCalls).toBe(1);
         expect(TrackedVelocity.attachCalls).toBe(1);
@@ -453,7 +459,7 @@ describe('Entry', () => {
       it('calls detach on old component and attach on new', () => {
         const pos = new TrackedPosition();
         const vel = new TrackedVelocity();
-        const entry = new Entry(Actor, [pos, vel]);
+        const entry = createEntry(Actor, [pos, vel]);
 
         TrackedPosition.attachCalls = 0;
         TrackedVelocity.attachCalls = 0;
@@ -472,7 +478,7 @@ describe('Entry', () => {
       it('calls detach on old component and attach on new', () => {
         const pos = new TrackedPosition();
         const vel = new TrackedVelocity();
-        const entry = new Entry(Actor, [pos, vel]);
+        const entry = createEntry(Actor, [pos, vel]);
 
         TrackedPosition.attachCalls = 0;
         TrackedVelocity.attachCalls = 0;
@@ -491,7 +497,7 @@ describe('Entry', () => {
       it('calls detach on old component and attach on new', () => {
         const pos = new TrackedPosition();
         const vel = new TrackedVelocity();
-        const entry = new Entry(Actor, [pos, vel]);
+        const entry = createEntry(Actor, [pos, vel]);
 
         TrackedPosition.attachCalls = 0;
         TrackedVelocity.attachCalls = 0;
@@ -513,7 +519,6 @@ describe('Entry', () => {
       const vel = new TrackedVelocity();
       const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor);
-
       table.insert(entry);
 
       TrackedPosition.aliveCalls = 0;
@@ -531,13 +536,12 @@ describe('Entry', () => {
       const vel = new TrackedVelocity();
       const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor);
-
       table.insert(entry);
 
       TrackedPosition.aliveCalls = 0;
 
       const newPos = new TrackedPosition();
-      entry.setAny(newPos);
+      entry.set(Position, newPos);
 
       expect(TrackedPosition.aliveCalls).toBe(1);
     });
@@ -547,7 +551,6 @@ describe('Entry', () => {
       const vel = new TrackedVelocity();
       const entry = new Entry(Actor, [pos, vel]);
       const table = new Table(Actor);
-
       table.insert(entry);
 
       TrackedPosition.aliveCalls = 0;
@@ -556,6 +559,92 @@ describe('Entry', () => {
       entry.setAt(0, newPos);
 
       expect(TrackedPosition.aliveCalls).toBe(1);
+    });
+  });
+
+  describe('isAlive', () => {
+    it('returns false when entry is not in a table', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = new Entry(Actor, [pos, vel]);
+
+      expect(entry.isAlive).toBe(false);
+    });
+
+    it('returns true when entry is in a table', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+
+      expect(entry.isAlive).toBe(true);
+    });
+
+    it('returns false after deletion', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+      table.delete(entry);
+
+      expect(entry.isAlive).toBe(false);
+    });
+  });
+
+  describe('isAlive', () => {
+    it('returns false when entry is not in a table', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = new Entry(Actor, [pos, vel]);
+
+      expect(entry.isAlive).toBe(false);
+    });
+
+    it('returns true when entry is in a table', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+
+      expect(entry.isAlive).toBe(true);
+    });
+
+    it('returns false after deletion', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = new Entry(Actor, [pos, vel]);
+      const table = new Table(Actor);
+      table.insert(entry);
+      table.delete(entry);
+
+      expect(entry.isAlive).toBe(false);
+    });
+  });
+
+  describe('weak', () => {
+    it('returns a WeakRef to the entry', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = createEntry(Actor, [pos, vel]);
+
+      const ref = entry.weak();
+
+      expect(ref).toBeInstanceOf(WeakRef);
+      expect(ref.deref()).toBe(entry);
+    });
+
+    it('WeakRef deref returns same entry', () => {
+      const pos = new Position();
+      const vel = new Velocity();
+      const entry = createEntry(Actor, [pos, vel]);
+
+      const ref = entry.weak();
+      const dereffed = ref.deref();
+
+      expect(dereffed).toBe(entry);
     });
   });
 });

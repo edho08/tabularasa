@@ -17,8 +17,20 @@ export class Entry<T extends typeof Entity> {
   }
 
   get index(): number {
-    if (this._index < 0) throw new TypeError(`Entry does not have an index`);
+    this.assertAlive();
     return this._index;
+  }
+
+  get isAlive(): boolean {
+    return this._table !== undefined;
+  }
+
+  weak(): WeakRef<Entry<T>> {
+    return new WeakRef(this);
+  }
+
+  private assertAlive(): void {
+    if (this._table === undefined) throw new TypeError('Entry is not managed by any Table');
   }
 
   constructor(entityType: T, components: ComponentsOf<T['columns']>) {
@@ -51,6 +63,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   get<Ctor extends T['columns'][number]>(ctor: Ctor): InstanceType<Ctor> {
+    this.assertAlive();
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0)
       throw new TypeError(
@@ -66,6 +79,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   has<Ctor extends T['columns'][number]>(ctor: Ctor): boolean {
+    this.assertAlive();
     return this.components.some(c => c instanceof ctor);
   }
 
@@ -73,6 +87,7 @@ export class Entry<T extends typeof Entity> {
     ctor: Ctor,
     value: InstanceType<Ctor>,
   ): InstanceType<Ctor> | undefined {
+    this.assertAlive();
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0)
       throw new TypeError(
@@ -87,6 +102,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   setAny(value: Component): Component | undefined {
+    this.assertAlive();
     const ctor = value.constructor as ComponentCtor;
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0)
@@ -102,6 +118,7 @@ export class Entry<T extends typeof Entity> {
   }
 
   setAt<I extends number>(index: I, value: Component): Component | undefined {
+    this.assertAlive();
     if (index < 0 || index >= this.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
     const Expected = this.entityType.columns[index];

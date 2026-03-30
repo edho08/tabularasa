@@ -1,5 +1,10 @@
+import type { ComponentCtor } from './component';
 import { Entry } from './entry';
 import { Entity } from './entity';
+
+type ComponentsOf<C extends readonly ComponentCtor[]> = {
+  [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
+};
 
 export class Table<T extends typeof Entity> {
   entityType: T;
@@ -9,12 +14,19 @@ export class Table<T extends typeof Entity> {
     this.entityType = entityType;
   }
 
-  insert(entry: Entry<T>): void {
+  insert(componentsOrEntry: ComponentsOf<T['columns']> | Entry<T>): WeakRef<Entry<T>> {
+    let entry: Entry<T>;
+    if (Array.isArray(componentsOrEntry)) {
+      entry = new Entry(this.entityType, componentsOrEntry);
+    } else {
+      entry = componentsOrEntry;
+    }
     if (entry.entityType !== this.entityType)
       throw new TypeError(`Entry's entity type does not match this Table`);
     entry.setTable(this);
     entry._index = this.entries.length;
     this.entries.push(entry);
+    return entry.weak();
   }
 
   delete(entry: Entry<T>): void {

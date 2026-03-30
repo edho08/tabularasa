@@ -62,6 +62,12 @@ describe('Option', () => {
     TrackedHealth.deadCalls = 0;
   });
 
+  function createEntryWithHealth(components: Component[]): Entry<typeof ActorWithHealth> {
+    const table = new Table(ActorWithHealth);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return table.insert(components).deref()!;
+  }
+
   describe('constructor', () => {
     it('creates option with value', () => {
       const health = new Health();
@@ -378,7 +384,7 @@ describe('Option', () => {
       health.hp = 100;
       const opt = new HealthOpt(health);
 
-      const entry = new Entry(ActorWithHealth, [pos, vel, opt]);
+      const entry = createEntryWithHealth([pos, vel, opt]);
 
       expect(entry.get(HealthOpt)).toBe(opt);
       expect(entry.get(HealthOpt).unwrap().hp).toBe(100);
@@ -389,18 +395,18 @@ describe('Option', () => {
       const vel = new Velocity();
       const opt = new HealthOpt(undefined);
 
-      const entry = new Entry(ActorWithHealth, [pos, vel, opt]);
+      const entry = createEntryWithHealth([pos, vel, opt]);
 
       expect(entry.get(HealthOpt).isNone()).toBe(true);
     });
 
     it('entry.has returns true for option slot regardless of value', () => {
-      const entry1 = new Entry(ActorWithHealth, [
+      const entry1 = createEntryWithHealth([
         new Position(),
         new Velocity(),
         new HealthOpt(new Health()),
       ]);
-      const entry2 = new Entry(ActorWithHealth, [
+      const entry2 = createEntryWithHealth([
         new Position(),
         new Velocity(),
         new HealthOpt(undefined),
@@ -413,7 +419,7 @@ describe('Option', () => {
     it('set replaces option with new option', () => {
       const pos = new Position();
       const vel = new Velocity();
-      const entry = new Entry(ActorWithHealth, [pos, vel, new HealthOpt(undefined)]);
+      const entry = createEntryWithHealth([pos, vel, new HealthOpt(undefined)]);
 
       const newOpt = new HealthOpt(new Health());
       entry.set(HealthOpt, newOpt);

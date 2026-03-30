@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Component } from '../src/component';
 import { Entity } from '../src/entity';
 import { Entry } from '../src/entry';
@@ -280,7 +281,7 @@ describe('Table', () => {
       const entry = new Entry(Actor, [pos, vel]);
 
       expect(() => entry.index).toThrow(TypeError);
-      expect(() => entry.index).toThrow('Entry does not have an index');
+      expect(() => entry.index).toThrow('Entry is not managed by any Table');
     });
 
     it('returns correct index after insert', () => {
@@ -321,7 +322,7 @@ describe('Table', () => {
       table.delete(entry);
 
       expect(() => entry.index).toThrow(TypeError);
-      expect(() => entry.index).toThrow('Entry does not have an index');
+      expect(() => entry.index).toThrow('Entry is not managed by any Table');
     });
 
     it('updates index after swap-pop delete', () => {
@@ -372,8 +373,10 @@ describe('Table', () => {
         { vx: 3, vy: 4 },
       ];
 
+      const table = new Table(Actor);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = Entry.deserialize(data, Actor, undefined, undefined) as Entry<any>;
+      const entry = Entry.deserialize(data, Actor, table, 0) as Entry<any>;
+      table.entries.push(entry);
 
       expect(entry).toBeInstanceOf(Entry);
       expect(entry.get(Position).x).toBe(100);
