@@ -8,8 +8,8 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 };
 
 export class Table<T extends typeof Entity> {
-  entityType: T;
-  manager: TableManager;
+  readonly entityType: T;
+  readonly manager: TableManager;
   private entries: Entry<T>[] = [];
 
   constructor(entityType: T, manager: TableManager) {
