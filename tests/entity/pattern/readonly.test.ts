@@ -71,6 +71,12 @@ describe('Readonly', () => {
     return table.insert(components).deref()!;
   }
 
+  function createEntryWithTracked(components: Component[]): Entry<typeof ActorWithTrackedHealth> {
+    const table = new Table(ActorWithTrackedHealth, manager);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return table.insert(components).deref()!;
+  }
+
   describe('constructor', () => {
     it('creates readonly with value', () => {
       const health = new Health();
@@ -94,7 +100,7 @@ describe('Readonly', () => {
     it('onAttached propagates to inner value', () => {
       const health = new TrackedHealth();
       const ro = new TrackedHealthRo(health);
-      new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), ro]);
+      createEntryWithTracked([new Position(), new Velocity(), ro]);
 
       expect(TrackedHealth.onAttachedCalls).toBe(1);
     });
@@ -122,7 +128,7 @@ describe('Readonly', () => {
     it('onAttached propagates to inner value', () => {
       const health = new TrackedHealth();
       const ro = new TrackedHealthRo(health);
-      new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), ro]);
+      createEntryWithTracked([new Position(), new Velocity(), ro]);
 
       expect(TrackedHealth.onAttachedCalls).toBe(1);
     });

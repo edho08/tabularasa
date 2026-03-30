@@ -135,7 +135,8 @@ describe('Union', () => {
       class ActorWithTracked extends Entity {
         static columns = Columns(UnionTracked);
       }
-      new Entry(ActorWithTracked, [new UnionTracked(tracked)]);
+      const table = new Table(ActorWithTracked, manager);
+      table.insert([new UnionTracked(tracked)]);
 
       expect(TrackedPosition.attachCalls).toBe(1);
     });
@@ -192,7 +193,10 @@ describe('Union', () => {
       pos.x = 7;
       pos.y = 8;
       const union = new UnionPosVel(pos);
-      const entry = new Entry(ActorWithUnion, [new Position(), new Velocity(), union]);
+      const table = new Table(ActorWithUnion, manager);
+      const ref = table.insert([new Position(), new Velocity(), union]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       const data = union.serialize(entry);
 
@@ -204,7 +208,10 @@ describe('Union', () => {
       vel.vx = 9;
       vel.vy = 10;
       const union = new UnionPosVel(vel);
-      const entry = new Entry(ActorWithUnion, [new Position(), new Velocity(), union]);
+      const table = new Table(ActorWithUnion, manager);
+      const ref = table.insert([new Position(), new Velocity(), union]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       const data = union.serialize(entry);
 

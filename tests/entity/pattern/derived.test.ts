@@ -157,7 +157,10 @@ describe('Derived', () => {
       pos3d.y = 2;
       pos3d.z = 3;
       const dp = new DerivedPos(pos3d);
-      const entry = new Entry(ActorWithDerived, [new Position(), new Velocity(), dp]);
+      const table = new Table(ActorWithDerived, manager);
+      const ref = table.insert([new Position(), new Velocity(), dp]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       const data = dp.serialize(entry);
 
@@ -172,7 +175,10 @@ describe('Derived', () => {
       pos.x = 5;
       pos.y = 10;
       const dp = new DerivedPos(pos);
-      const entry = new Entry(ActorWithDerived, [new Position(), new Velocity(), dp]);
+      const table = new Table(ActorWithDerived, manager);
+      const ref = table.insert([new Position(), new Velocity(), dp]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       const data = dp.serialize(entry);
 
@@ -267,7 +273,8 @@ describe('Derived', () => {
 
       const pos = new TrackedPosition();
       const dp = new DerivedTracked(pos);
-      new Entry(ActorWithTracked, [dp]);
+      const table = new Table(ActorWithTracked, manager);
+      table.insert([dp]);
 
       expect(TrackedPosition.attachCalls).toBe(1);
     });
@@ -280,7 +287,10 @@ describe('Derived', () => {
 
       const pos = new TrackedPosition();
       const dp = new DerivedTracked(pos);
-      const entry = new Entry(ActorWithTracked, [dp]);
+      const table = new Table(ActorWithTracked, manager);
+      const ref = table.insert([dp]);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       TrackedPosition.detachCalls = 0;
       dp.onDetached(entry);
@@ -446,7 +456,10 @@ describe('Derived', () => {
       }
 
       const vel = new Velocity();
-      const entry = new Entry(ActorWithPosition, [vel]);
+      const table = new Table(ActorWithPosition, manager);
+      const ref = table.insert([vel] as any);
+      const entry = ref.deref();
+      if (!entry) throw new Error('insert failed');
 
       expect(entry.components[0]).toBeInstanceOf(Velocity);
     });

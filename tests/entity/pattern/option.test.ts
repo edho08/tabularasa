@@ -71,6 +71,12 @@ describe('Option', () => {
     return table.insert(components).deref()!;
   }
 
+  function createEntryWithTracked(components: Component[]): Entry<typeof ActorWithTrackedHealth> {
+    const table = new Table(ActorWithTrackedHealth, manager);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return table.insert(components).deref()!;
+  }
+
   describe('constructor', () => {
     it('creates option with value', () => {
       const health = new Health();
@@ -230,14 +236,14 @@ describe('Option', () => {
     it('attach propagates to inner value', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
-      new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
+      createEntryWithTracked([new Position(), new Velocity(), opt]);
 
       expect(TrackedHealth.attachCalls).toBe(1);
     });
 
     it('attach does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
-      new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
+      createEntryWithTracked([new Position(), new Velocity(), opt]);
 
       expect(TrackedHealth.attachCalls).toBe(0);
     });
@@ -245,7 +251,7 @@ describe('Option', () => {
     it('detach propagates to inner value', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
-      const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
+      const entry = createEntryWithTracked([new Position(), new Velocity(), opt]);
 
       TrackedHealth.detachCalls = 0;
       opt.onDetached(entry);
@@ -255,7 +261,7 @@ describe('Option', () => {
 
     it('detach does not call on inner when none', () => {
       const opt = new TrackedHealthOpt(undefined);
-      const entry = new Entry(ActorWithTrackedHealth, [new Position(), new Velocity(), opt]);
+      const entry = createEntryWithTracked([new Position(), new Velocity(), opt]);
 
       TrackedHealth.detachCalls = 0;
       opt.onDetached(entry);

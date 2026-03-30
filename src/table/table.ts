@@ -18,7 +18,8 @@ export class Table<T extends typeof Entity> {
   }
 
   insert(components: ComponentsOf<T['columns']>): WeakRef<Entry<T>> {
-    const entry = new Entry(this.entityType, components, this, this.entries.length);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entry = new Entry(components as any, this, this.entries.length);
     this.entries.push(entry);
     return entry.weak();
   }
@@ -51,7 +52,7 @@ export class Table<T extends typeof Entity> {
     this.entries = [];
     for (let i = 0; i < data.length; i++) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = Entry.deserialize(this.entityType, data[i] as any, this, i);
+      const entry = Entry.deserialize(data[i] as any, this, i);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.entries.push(entry as any);
     }

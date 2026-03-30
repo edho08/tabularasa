@@ -15,7 +15,6 @@ export interface AnyEntry {
 }
 
 export class Entry<T extends typeof Entity> implements AnyEntry {
-  entityType: T;
   components: Component[];
   readonly table: Table<T>;
   private _index: number = -1;
@@ -38,13 +37,7 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     if (!this._alive) throw new TypeError('Entry is not managed by any Table');
   }
 
-  constructor(
-    entityType: T,
-    components: ComponentsOf<T['columns']>,
-    table: Table<T>,
-    index: number,
-  ) {
-    this.entityType = entityType;
+  constructor(components: ComponentsOf<T['columns']>, table: Table<T>, index: number) {
     this.components = [...components] as Component[];
     this.table = table;
     this._index = index;
@@ -78,7 +71,7 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0)
       throw new TypeError(
-        `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
+        `Component ${ctor.name} is not in component set of [${this.table.entityType.columns.map(c => c.name).join(', ')}]`,
       );
     return this.components[idx] as InstanceType<Ctor>;
   }
@@ -90,7 +83,7 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
 
   getAt<I extends number>(index: I): InstanceType<T['columns'][I]> {
     this.assertAlive();
-    if (index < 0 || index >= this.entityType.columns.length)
+    if (index < 0 || index >= this.table.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
     return this.components[index] as InstanceType<T['columns'][I]>;
   }
@@ -108,7 +101,7 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0)
       throw new TypeError(
-        `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
+        `Component ${ctor.name} is not in component set of [${this.table.entityType.columns.map(c => c.name).join(', ')}]`,
       );
     const old = this.components[idx];
     old.onDetached(this);
@@ -124,7 +117,7 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0)
       throw new TypeError(
-        `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
+        `Component ${ctor.name} is not in component set of [${this.table.entityType.columns.map(c => c.name).join(', ')}]`,
       );
     const old = this.components[idx];
     old.onDetached(this);
@@ -136,9 +129,9 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
 
   setAt<I extends number>(index: I, value: Component): Component | undefined {
     this.assertAlive();
-    if (index < 0 || index >= this.entityType.columns.length)
+    if (index < 0 || index >= this.table.entityType.columns.length)
       throw new TypeError(`Index ${index} is out of bounds`);
-    const Expected = this.entityType.columns[index];
+    const Expected = this.table.entityType.columns[index];
     const valueCtor = value.constructor as ComponentCtor;
     if (!(value instanceof Expected)) {
       throw new TypeError(
@@ -158,13 +151,15 @@ export class Entry<T extends typeof Entity> implements AnyEntry {
   }
 
   static deserialize(
-    entityType: typeof Entity,
     componentsData: Record<string, unknown>[],
     table: Table<any>,
     index: number,
   ): Entry<typeof Entity> {
-    const components = entityType.columns.map((ctor, i) => ctor.deserialize(componentsData[i]));
+    const entityType = table.entityType;
+    const components = entityType.columns.map((ctor: ComponentCtor, i: number) =>
+      ctor.deserialize(componentsData[i]),
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new Entry(entityType, components as any, table, index);
+    return new Entry(components as any, table, index);
   }
 }
