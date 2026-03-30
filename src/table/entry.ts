@@ -6,7 +6,15 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
   [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
 };
 
-export class Entry<T extends typeof Entity> {
+export interface AnyEntry {
+  readonly index: number;
+  readonly isAlive: boolean;
+  readonly table: Table<any>;
+  getAny(ctor: ComponentCtor): Component | undefined;
+  setAny(value: Component): Component | undefined;
+}
+
+export class Entry<T extends typeof Entity> implements AnyEntry {
   entityType: T;
   components: Component[];
   readonly table: Table<T>;
@@ -73,6 +81,11 @@ export class Entry<T extends typeof Entity> {
         `Component ${ctor.name} is not in component set of [${this.entityType.columns.map(c => c.name).join(', ')}]`,
       );
     return this.components[idx] as InstanceType<Ctor>;
+  }
+
+  getAny(ctor: ComponentCtor): Component | undefined {
+    this.assertAlive();
+    return this.components.find(c => c instanceof ctor);
   }
 
   getAt<I extends number>(index: I): InstanceType<T['columns'][I]> {
@@ -142,5 +155,16 @@ export class Entry<T extends typeof Entity> {
 
   serialize(): Record<string, unknown>[] {
     return this.components.map(c => c.serialize(this));
+  }
+
+  static deserialize(
+    entityType: typeof Entity,
+    componentsData: Record<string, unknown>[],
+    table: Table<any>,
+    index: number,
+  ): Entry<typeof Entity> {
+    const components = entityType.columns.map((ctor, i) => ctor.deserialize(componentsData[i]));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new Entry(entityType, components as any, table, index);
   }
 }

@@ -44,19 +44,16 @@ export class Table<T extends typeof Entity> {
     return this.entries.includes(entry);
   }
 
-  deserialize(data: Record<string, unknown>[]): void {
+  deserialize(data: Record<string, unknown>[][]): void {
     for (const entry of this.entries) {
       entry.callDead();
     }
     this.entries = [];
     for (let i = 0; i < data.length; i++) {
-      const entryData = data[i];
-      const components = this.entityType.columns.map((ctor, j) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (ctor as any).deserialize(entryData[j]),
-      );
-      const entry = new Entry(this.entityType, components as ComponentsOf<T['columns']>, this, i);
-      this.entries.push(entry);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entry = Entry.deserialize(this.entityType, data[i] as any, this, i);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.entries.push(entry as any);
     }
   }
 

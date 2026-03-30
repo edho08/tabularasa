@@ -28,7 +28,7 @@ export class TableManager extends Resource {
     return result;
   }
 
-  deserialize(entities: (typeof Entity)[], data: unknown[][]): void {
+  deserialize(entities: (typeof Entity)[], data: Record<string, unknown>[][][]): void {
     if (entities.length !== data.length)
       throw new TypeError(
         `Entity count ${entities.length} does not match data length ${data.length}`,
@@ -37,7 +37,7 @@ export class TableManager extends Resource {
       const entity = entities[i];
       const table = this.tables.get(entity);
       if (!table) throw new TypeError(`No table for entity ${entity.name}`);
-      table.deserialize(data[i] as Record<string, unknown>[]);
+      table.deserialize(data[i]);
     }
     for (const entity of entities) {
       const table = this.tables.get(entity);

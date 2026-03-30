@@ -2,6 +2,7 @@ export { Component } from './entity/component';
 export type { ComponentCtor } from './entity/component';
 export { Entity, Columns } from './entity/entity';
 export { Entry } from './table/entry';
+export type { AnyEntry } from './table/entry';
 export { Table } from './table/table';
 export { TableManager } from './table/manager';
 export { Resource, World } from './world';

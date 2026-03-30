@@ -29,7 +29,7 @@ export class World {
     return this.getResource(TableManager)!.serialize(entities);
   }
 
-  deserialize(entities: (typeof Entity)[], data: unknown[][]): void {
+  deserialize(entities: (typeof Entity)[], data: Record<string, unknown>[][][]): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.getResource(TableManager)!.deserialize(entities, data);
   }

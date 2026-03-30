@@ -1,5 +1,5 @@
 import { Component } from '../component';
-import type { Entry } from '../../table/entry';
+import type { AnyEntry } from '../../table/entry';
 import type { ComponentCtor } from '../component';
 
 export class OptionComponent<T extends Component = Component> extends Component {
@@ -44,28 +44,28 @@ export class OptionComponent<T extends Component = Component> extends Component 
     if (this.value === undefined) fn();
   }
 
-  override onAttached(entry: Entry<any>): void {
+  override onAttached(entry: AnyEntry): void {
     if (this.value) this.value.onAttached(entry);
   }
 
-  override onDetached(entry: Entry<any>): void {
+  override onDetached(entry: AnyEntry): void {
     if (this.value) this.value.onDetached(entry);
   }
 
-  override onAlive(entry: Entry<any>): void {
+  override onAlive(entry: AnyEntry): void {
     if (this.value) this.value.onAlive(entry);
   }
 
-  override onDead(entry: Entry<any>): void {
+  override onDead(entry: AnyEntry): void {
     if (this.value) this.value.onDead(entry);
   }
 
-  override onDeserialized(entry: Entry<any>): void {
+  override onDeserialized(entry: AnyEntry): void {
     if (this.value) this.value.onDeserialized(entry);
   }
 
   // @ts-expect-error - returns null for None case, base returns Record<string, unknown>
-  override serialize(entry: Entry<any>): Record<string, unknown> | null {
+  override serialize(entry: AnyEntry): Record<string, unknown> | null {
     return this.value ? this.value.serialize(entry) : null;
   }
 

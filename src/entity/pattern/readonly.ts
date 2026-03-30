@@ -1,5 +1,5 @@
 import { Component } from '../component';
-import type { Entry } from '../../table/entry';
+import type { AnyEntry } from '../../table/entry';
 import type { ComponentCtor } from '../component';
 
 export class ReadonlyComponent<T extends Component = Component> extends Component {
@@ -12,34 +12,38 @@ export class ReadonlyComponent<T extends Component = Component> extends Componen
     this.value = value;
   }
 
-  override onAttached(entry: Entry<any>): void {
+  override onAttached(entry: AnyEntry): void {
     this.value.onAttached(entry);
   }
 
-  override onDetached(_entry: Entry<any>): void {
+  override onDetached(_entry: AnyEntry): void {
     throw new TypeError(`cannot change readonly component`);
   }
 
-  override onAlive(entry: Entry<any>): void {
+  override onAlive(entry: AnyEntry): void {
     this.value.onAlive(entry);
   }
 
-  override onDead(entry: Entry<any>): void {
+  override onDead(entry: AnyEntry): void {
     this.value.onDead(entry);
   }
 
-  override onDeserialized(entry: Entry<any>): void {
+  override onDeserialized(entry: AnyEntry): void {
     this.value.onDeserialized(entry);
   }
 
-  override serialize(entry: Entry<any>): Record<string, unknown> {
+  override serialize(entry: AnyEntry): Record<string, unknown> {
     return this.value.serialize(entry);
   }
 
   static deserialize(data: Record<string, unknown>): ReadonlyComponent {
     const instance = Object.create(this.prototype) as ReadonlyComponent;
-    // @ts-expect-error - readonly property set during deserialization
-    instance.value = this.ctor.deserialize(data) as ReadonlyComponent['value'];
+    Object.defineProperty(instance, 'value', {
+      value: this.ctor.deserialize(data),
+      writable: false,
+      enumerable: true,
+      configurable: true,
+    });
     return instance;
   }
 }
