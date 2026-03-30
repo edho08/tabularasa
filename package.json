@@ -42,8 +42,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/edho08/tabularasa"
   },
+  "bugs": {
+    "url": "https://github.com/edho08/tabularasa/issues"
+  },
+  "homepage": "https://github.com/edho08/tabularasa#readme",
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
