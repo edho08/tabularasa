@@ -21,8 +21,7 @@ export class TableManager extends Resource {
   serialize(entities: (typeof Entity)[]): unknown[][] {
     const result: unknown[][] = [];
     for (const entity of entities) {
-      const table = this.tables.get(entity);
-      if (!table) throw new TypeError(`No table for entity ${entity.name}`);
+      const table = this.getTable(entity);
       result.push(table.serialize());
     }
     return result;
@@ -35,13 +34,12 @@ export class TableManager extends Resource {
       );
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
-      const table = this.tables.get(entity);
-      if (!table) throw new TypeError(`No table for entity ${entity.name}`);
+      const table = this.getTable(entity);
       table.deserialize(data[i]);
     }
     for (const entity of entities) {
-      const table = this.tables.get(entity);
-      if (table) table.onDeserialized();
+      const table = this.getTable(entity);
+      table.onDeserialized();
     }
   }
 }
