@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Component } from '../src/entity/component';
-import type { Entry } from '../src/table/entry';
+import { Component } from '../../src/entity/component';
+import type { Entry } from '../../src/table/entry';
 
 class TestComponent extends Component {
   attachCalled = false;
