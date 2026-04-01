@@ -288,7 +288,7 @@ describe('Option', () => {
       expect(TrackedHealth.attachCalls).toBe(0);
     });
 
-    it('dead propagates to inner value', () => {
+    it('detach propagates to inner value', () => {
       const health = new TrackedHealth();
       const opt = new TrackedHealthOpt(health);
       const table = new Table(ActorWithTrackedHealth, manager);
@@ -296,10 +296,10 @@ describe('Option', () => {
       const entry = ref.deref();
       if (!entry) throw new Error('insert failed');
 
-      TrackedHealth.deadCalls = 0;
+      TrackedHealth.detachCalls = 0;
       table.delete(ref);
 
-      expect(TrackedHealth.deadCalls).toBe(1);
+      expect(TrackedHealth.detachCalls).toBe(1);
     });
 
     it('detach does not call on inner when none', () => {

@@ -154,7 +154,7 @@ describe('Readonly', () => {
       expect(TrackedHealth.onAttachedCalls).toBe(1);
     });
 
-    it('onDead propagates to inner value', () => {
+    it('onDetached propagates to inner value', () => {
       const health = new TrackedHealth();
       const ro = new TrackedHealthRo(health);
       const table = new Table(ActorWithHealth, new TableManager());
@@ -162,10 +162,10 @@ describe('Readonly', () => {
       const entry = ref.deref();
       if (!entry) throw new Error('insert failed');
 
-      TrackedHealth.onDeadCalls = 0;
+      TrackedHealth.onDetachedCalls = 0;
       table.delete(ref);
 
-      expect(TrackedHealth.onDeadCalls).toBe(1);
+      expect(TrackedHealth.onDetachedCalls).toBe(1);
     });
   });
 

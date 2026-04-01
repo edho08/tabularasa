@@ -180,10 +180,10 @@ describe('Union', () => {
       const table = new Table(ActorWithTracked, manager);
       const ref = table.insert([new UnionTracked(tracked)]);
 
-      TrackedPosition.deadCalls = 0;
+      TrackedPosition.detachCalls = 0;
       table.delete(ref);
 
-      expect(TrackedPosition.deadCalls).toBe(1);
+      expect(TrackedPosition.detachCalls).toBe(1);
     });
   });
 

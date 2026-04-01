@@ -31,10 +31,6 @@ export class UnionComponent<T extends Component = Component> extends Component {
     this.value.onDetached(entry);
   }
 
-  override onDead(entry: AnyEntry): void {
-    this.value.onDead(entry);
-  }
-
   override onDeserialized(entry: AnyEntry): void {
     this.value.onDeserialized(entry);
   }

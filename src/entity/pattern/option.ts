@@ -52,10 +52,6 @@ export class OptionComponent<T extends Component = Component> extends Component 
     if (this.value) this.value.onDetached(entry);
   }
 
-  override onDead(entry: AnyEntry): void {
-    if (this.value) this.value.onDead(entry);
-  }
-
   override onDeserialized(entry: AnyEntry): void {
     if (this.value) this.value.onDeserialized(entry);
   }

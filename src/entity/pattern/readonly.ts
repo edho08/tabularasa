@@ -1,4 +1,5 @@
 import { Component } from '../component';
+import { EntryLifecycle } from '../../table/entry';
 import type { AnyEntry } from '../../table/entry';
 import type { ComponentCtor } from '../component';
 
@@ -16,12 +17,11 @@ export class ReadonlyComponent<T extends Component = Component> extends Componen
     this.value.onAttached(entry);
   }
 
-  override onDetached(_entry: AnyEntry): void {
-    throw new TypeError(`cannot change readonly component`);
-  }
-
-  override onDead(entry: AnyEntry): void {
-    this.value.onDead(entry);
+  override onDetached(entry: AnyEntry): void {
+    if (entry.lifecycle === EntryLifecycle.ALIVE) {
+      throw new TypeError(`cannot change readonly component`);
+    }
+    this.value.onDetached(entry);
   }
 
   override onDeserialized(entry: AnyEntry): void {

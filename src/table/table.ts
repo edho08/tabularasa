@@ -1,5 +1,5 @@
 import type { ComponentCtor } from '../entity/component';
-import { Entry } from './entry';
+import { Entry, EntryLifecycle } from './entry';
 import { Entity } from '../entity/entity';
 import type { TableManager } from './manager';
 
@@ -9,11 +9,13 @@ type ComponentsOf<C extends readonly ComponentCtor[]> = {
 
 export class Table<T extends typeof Entity> {
   readonly entityType: T;
+  readonly columns: readonly ComponentCtor[];
   readonly manager: TableManager;
   private entries: Entry<T>[] = [];
 
   constructor(entityType: T, manager: TableManager) {
     this.entityType = entityType;
+    this.columns = entityType.columns as readonly ComponentCtor[];
     this.manager = manager;
   }
 
@@ -27,16 +29,19 @@ export class Table<T extends typeof Entity> {
   delete(ref: WeakRef<Entry<T>>): ComponentsOf<T['columns']> {
     const entry = ref.deref();
     if (entry === undefined) return [] as ComponentsOf<T['columns']>;
+    if (entry.lifecycle === EntryLifecycle.DYING || entry.lifecycle === EntryLifecycle.DEAD)
+      return [] as ComponentsOf<T['columns']>;
     const idx = this.entries.indexOf(entry);
     if (idx < 0) return [] as ComponentsOf<T['columns']>;
-    entry.callDead();
-    // @ts-expect-error - internal field access, Table is the owner of Entry index
-    entry._index = -1;
+    // @ts-expect-error - internal field access, Table is the owner of Entry lifecycle
+    entry._lifecycle = EntryLifecycle.DYING;
+    entry.callDetached();
     const last = this.entries.pop();
     if (last === undefined) return [] as ComponentsOf<T['columns']>;
     if (last !== entry) {
       // @ts-expect-error - internal field access, Table is the owner of Entry index
       last._index = idx;
+      last.table = this;
       this.entries[idx] = last;
     }
     return entry.components;
@@ -48,7 +53,9 @@ export class Table<T extends typeof Entity> {
 
   deserialize(data: Record<string, unknown>[][]): void {
     for (const entry of this.entries) {
-      entry.callDead();
+      // @ts-expect-error - internal field access, Table is the owner of Entry lifecycle
+      entry._lifecycle = EntryLifecycle.DYING;
+      entry.callDetached();
     }
     this.entries = [];
     for (let i = 0; i < data.length; i++) {

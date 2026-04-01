@@ -313,7 +313,7 @@ describe('Derived', () => {
       expect(TrackedPosition.attachCalls).toBe(1);
     });
 
-    it('onDead propagates to inner value', () => {
+    it('onDetached propagates to inner value', () => {
       const DerivedTracked = Derived(TrackedPosition);
       class ActorWithTracked extends Entity {
         static columns = Columns(DerivedTracked);
@@ -326,10 +326,10 @@ describe('Derived', () => {
       const entry = ref.deref();
       if (!entry) throw new Error('Failed to insert entry');
 
-      TrackedPosition.deadCalls = 0;
+      TrackedPosition.detachCalls = 0;
       table.delete(ref);
 
-      expect(TrackedPosition.deadCalls).toBe(1);
+      expect(TrackedPosition.detachCalls).toBe(1);
     });
   });
 

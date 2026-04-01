@@ -142,8 +142,8 @@ describe('Table', () => {
 
       table.delete(ref);
 
-      expect(TrackedPosition.deadCalls).toBe(1);
-      expect(TrackedVelocity.deadCalls).toBe(1);
+      expect(TrackedPosition.detachCalls).toBe(1);
+      expect(TrackedVelocity.detachCalls).toBe(1);
     });
 
     it('swaps-and-pop works correctly with multiple entries', () => {
@@ -335,7 +335,7 @@ describe('Table', () => {
       table.delete(ref);
 
       expect(() => entry.index).toThrow(TypeError);
-      expect(() => entry.index).toThrow('Entry is not managed by any Table');
+      expect(() => entry.index).toThrow('Entry is not alive');
     });
 
     it('updates index after swap-pop delete', () => {
@@ -431,8 +431,8 @@ describe('Table', () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const _oldEntry = ref.deref()!;
 
-      TrackedPosition.deadCalls = 0;
-      TrackedVelocity.deadCalls = 0;
+      TrackedPosition.detachCalls = 0;
+      TrackedVelocity.detachCalls = 0;
 
       const data = [
         [
@@ -443,8 +443,8 @@ describe('Table', () => {
 
       table.deserialize(data);
 
-      expect(TrackedPosition.deadCalls).toBe(1);
-      expect(TrackedVelocity.deadCalls).toBe(1);
+      expect(TrackedPosition.detachCalls).toBe(1);
+      expect(TrackedVelocity.detachCalls).toBe(1);
     });
   });
 
