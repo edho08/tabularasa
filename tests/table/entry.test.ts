@@ -10,35 +10,19 @@ const manager = new TableManager();
 class Position extends Component {
   x = 0;
   y = 0;
-  onAttached(): void {}
-  onDetached(): void {}
-  onAlive(): void {}
-  onDead(): void {}
 }
 
 class Velocity extends Component {
   vx = 0;
   vy = 0;
-  onAttached(): void {}
-  onDetached(): void {}
-  onAlive(): void {}
-  onDead(): void {}
 }
 
 class Health extends Component {
   hp = 100;
-  onAttached(): void {}
-  onDetached(): void {}
-  onAlive(): void {}
-  onDead(): void {}
 }
 
 class Unused extends Component {
   value = 'unused';
-  onAttached(): void {}
-  onDetached(): void {}
-  onAlive(): void {}
-  onDead(): void {}
 }
 
 class Actor extends Entity<[Position, Velocity]> {}
