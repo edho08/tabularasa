@@ -1,68 +1,68 @@
-import type { ComponentCtor } from '../entity/component';
-import { Entry, EntryLifecycle } from './entry';
+import { Component, ComponentCtor } from '../entity/component';
+import { Entry, EntryLifecycle, TableEntry } from './entry';
 import { Entity } from '../entity/entity';
 import type { TableManager } from './manager';
 
-type ComponentsOf<C extends readonly ComponentCtor[]> = {
-  -readonly [K in keyof C]: C[K] extends new (...args: any[]) => infer I ? I : never;
-};
-
-export class Table<T extends typeof Entity> {
+export class Table<T extends Entity<Component[]>> {
   readonly entityType: T;
-  readonly columns: readonly ComponentCtor[];
   readonly manager: TableManager;
-  private entries: Entry<T>[] = [];
+  private entries: TableEntry<T>[] = [];
+  private _columns: readonly ComponentCtor[] | undefined;
 
   constructor(entityType: T, manager: TableManager) {
     this.entityType = entityType;
-    this.columns = entityType.columns as readonly ComponentCtor[];
     this.manager = manager;
   }
 
-  insert(components: ComponentsOf<T['columns']>): WeakRef<Entry<T>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entry = new Entry(components as any, this, this.entries.length);
+  serializeable(): this {
+    this.manager.addSerializable(this);
+    return this;
+  }
+
+  insert(
+    _entity: T,
+    components: NoInfer<T extends Entity<infer C> ? C : never>,
+  ): WeakRef<Entry<T>> {
+    if (this._columns === undefined) {
+      this._columns = components.map(c => c.constructor as ComponentCtor);
+    }
+    const entry = new TableEntry(components, this, this.entries.length);
     this.entries.push(entry);
     return entry.weak();
   }
 
-  delete(ref: WeakRef<Entry<T>>): ComponentsOf<T['columns']> {
-    const entry = ref.deref();
-    if (entry === undefined) return [] as ComponentsOf<T['columns']>;
+  delete(ref: WeakRef<Entry<T>>): NoInfer<T extends Entity<infer C> ? C : never> {
+    const entry = ref.deref() as TableEntry<T> | undefined;
+    if (entry === undefined) return [] as any;
     if (entry.lifecycle === EntryLifecycle.DYING || entry.lifecycle === EntryLifecycle.DEAD)
-      return [] as ComponentsOf<T['columns']>;
+      return [] as any;
     const idx = this.entries.indexOf(entry);
-    if (idx < 0) return [] as ComponentsOf<T['columns']>;
-    // @ts-expect-error - internal field access, Table is the owner of Entry lifecycle
-    entry._lifecycle = EntryLifecycle.DYING;
+    if (idx < 0) return [] as any;
+    entry.lifecycle = EntryLifecycle.DYING;
     entry.callDetached();
     const last = this.entries.pop();
-    if (last === undefined) return [] as ComponentsOf<T['columns']>;
+    if (last === undefined) return [] as any;
     if (last !== entry) {
-      // @ts-expect-error - internal field access, Table is the owner of Entry index
-      last._index = idx;
-      last.table = this;
+      last.index = idx;
+      last.table = this as any;
       this.entries[idx] = last;
     }
-    return entry.components;
+    return entry.components as any;
   }
 
   has(entry: Entry<T>): boolean {
-    return this.entries.includes(entry);
+    return this.entries.includes(entry as TableEntry<T>);
   }
 
   deserialize(data: Record<string, unknown>[][]): void {
     for (const entry of this.entries) {
-      // @ts-expect-error - internal field access, Table is the owner of Entry lifecycle
-      entry._lifecycle = EntryLifecycle.DYING;
+      entry.lifecycle = EntryLifecycle.DYING;
       entry.callDetached();
     }
     this.entries = [];
     for (let i = 0; i < data.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = Entry.deserialize(data[i] as any, this, i);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.entries.push(entry as any);
+      const entry = TableEntry.deserialize(data[i], this, i);
+      this.entries.push(entry as unknown as TableEntry<T>);
     }
   }
 
@@ -82,6 +82,10 @@ export class Table<T extends typeof Entity> {
   }
 
   serialize(): Record<string, unknown>[][] {
+    if (this._columns === undefined && this.entries.length > 0) {
+      throw new TypeError('Table has no columns defined');
+    }
+    if (this._columns === undefined) return [];
     return this.entries.map(entry => entry.serialize());
   }
 }

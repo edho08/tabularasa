@@ -1,11 +1,13 @@
+import { Component } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Resource } from '../world/resource';
 import { Table } from './table';
 
 export class TableManager extends Resource {
-  private tables: Map<typeof Entity, Table<any>> = new Map();
+  private tables: Map<Entity<Component[]>, Table<any>> = new Map();
+  private serializableTables: Set<Table<any>> = new Set();
 
-  getTable<E extends typeof Entity>(entityType: E): Table<E> {
+  getTable<E extends Entity<Component[]>>(entityType: E): Table<E> {
     let table = this.tables.get(entityType);
     if (!table) {
       table = new Table(entityType, this);
@@ -14,31 +16,30 @@ export class TableManager extends Resource {
     return table as Table<E>;
   }
 
-  hasTable<E extends typeof Entity>(entityType: E): boolean {
+  hasTable<E extends Entity<Component[]>>(entityType: E): boolean {
     return this.tables.has(entityType);
   }
 
-  serialize(entities: (typeof Entity)[]): unknown[][] {
-    const result: unknown[][] = [];
-    for (const entity of entities) {
-      const table = this.getTable(entity);
-      result.push(table.serialize());
+  addSerializable(table: Table<any>): void {
+    this.serializableTables.add(table);
+  }
+
+  serialize(): Map<Entity<Component[]>, unknown[]> {
+    const result = new Map<Entity<Component[]>, unknown[]>();
+    for (const table of this.serializableTables) {
+      result.set(table.entityType, table.serialize());
     }
     return result;
   }
 
-  deserialize(entities: (typeof Entity)[], data: Record<string, unknown>[][][]): void {
-    if (entities.length !== data.length)
-      throw new TypeError(
-        `Entity count ${entities.length} does not match data length ${data.length}`,
-      );
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
-      const table = this.getTable(entity);
-      table.deserialize(data[i]);
+  deserialize(data: Map<Entity<Component[]>, unknown[]>): void {
+    for (const table of this.serializableTables) {
+      const tableData = data.get(table.entityType);
+      if (tableData !== undefined) {
+        table.deserialize(tableData as Record<string, unknown>[][]);
+      }
     }
-    for (const entity of entities) {
-      const table = this.getTable(entity);
+    for (const table of this.serializableTables) {
       table.onDeserialized();
     }
   }
