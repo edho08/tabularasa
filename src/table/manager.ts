@@ -4,10 +4,10 @@ import { Resource } from '../world/resource';
 import { Table } from './table';
 
 export class TableManager extends Resource {
-  private tables: Map<Entity<Component[]>, Table<any>> = new Map();
+  private tables: Map<any, Table<any>> = new Map();
   private serializableTables: Set<Table<any>> = new Set();
 
-  getTable<E extends Entity<Component[]>>(entityType: E): Table<E> {
+  get<E extends Entity<Component[]>>(entityType: new () => E): Table<E> {
     let table = this.tables.get(entityType);
     if (!table) {
       table = new Table(entityType, this);
@@ -16,7 +16,7 @@ export class TableManager extends Resource {
     return table as Table<E>;
   }
 
-  hasTable<E extends Entity<Component[]>>(entityType: E): boolean {
+  has<E extends Entity<Component[]>>(entityType: new () => E): boolean {
     return this.tables.has(entityType);
   }
 
@@ -24,15 +24,15 @@ export class TableManager extends Resource {
     this.serializableTables.add(table);
   }
 
-  serialize(): Map<Entity<Component[]>, unknown[]> {
-    const result = new Map<Entity<Component[]>, unknown[]>();
+  serialize(): Map<any, unknown[]> {
+    const result = new Map<any, unknown[]>();
     for (const table of this.serializableTables) {
       result.set(table.entityType, table.serialize());
     }
     return result;
   }
 
-  deserialize(data: Map<Entity<Component[]>, unknown[]>): void {
+  deserialize(data: Map<any, unknown[]>): void {
     for (const table of this.serializableTables) {
       const tableData = data.get(table.entityType);
       if (tableData !== undefined) {

@@ -4,12 +4,12 @@ import { Entity } from '../entity/entity';
 import type { TableManager } from './manager';
 
 export class Table<T extends Entity<Component[]>> {
-  readonly entityType: T;
+  readonly entityType: new () => T;
   readonly manager: TableManager;
   private entries: TableEntry<T>[] = [];
   private _columns: readonly ComponentCtor[] | undefined;
 
-  constructor(entityType: T, manager: TableManager) {
+  constructor(entityType: new () => T, manager: TableManager) {
     this.entityType = entityType;
     this.manager = manager;
   }
