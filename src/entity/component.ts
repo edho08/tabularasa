@@ -6,9 +6,9 @@ export interface ComponentCtor {
 }
 
 export abstract class Component {
-  onAttached(_entry: AnyEntry): void {}
-  onDetached(_entry: AnyEntry): void {}
-  onDeserialized(_entry: AnyEntry): void {}
+  onAttached(_entry: AnyEntry, _index: number): void {}
+  onDetached(_entry: AnyEntry, _index: number): void {}
+  onDeserialized(_entry: AnyEntry, _index: number): void {}
 
   serialize(_entry: AnyEntry): Record<string, unknown> {
     // eslint-disable-next-line no-undef

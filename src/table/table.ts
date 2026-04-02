@@ -3,7 +3,17 @@ import { Entry, EntryLifecycle, TableEntry } from './entry';
 import { Entity } from '../entity/entity';
 import type { TableManager } from './manager';
 
-export class Table<T extends Entity<Component[]>> {
+export interface Table<T extends Entity<Component[]>> {
+  readonly columns: readonly ComponentCtor[];
+  readonly manager: TableManager;
+  serializeable(): this;
+  insert(entity: T, components: NoInfer<T extends Entity<infer C> ? C : never>): WeakRef<Entry<T>>;
+  delete(ref: WeakRef<Entry<T>>): NoInfer<T extends Entity<infer C> ? C : never>;
+  getAt(index: number): WeakRef<Entry<T>> | undefined;
+  [Symbol.iterator](): Iterator<Entry<T>>;
+}
+
+export class TableInner<T extends Entity<Component[]>> implements Table<T> {
   readonly entityType: new () => T;
   readonly manager: TableManager;
   private entries: TableEntry<T>[] = [];
@@ -53,10 +63,6 @@ export class Table<T extends Entity<Component[]>> {
       this.entries[idx] = last;
     }
     return entry.components as any;
-  }
-
-  has(entry: Entry<T>): boolean {
-    return this.entries.includes(entry as TableEntry<T>);
   }
 
   deserialize(data: Record<string, unknown>[][]): void {

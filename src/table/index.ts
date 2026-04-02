@@ -1,4 +1,5 @@
-export { Entry } from './entry';
+export type { Entry } from './entry';
 export type { AnyEntry } from './entry';
-export { Table } from './table';
+export type { Table } from './table';
+export { TableInner } from './table';
 export { TableManager } from './manager';

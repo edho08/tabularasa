@@ -1,26 +1,26 @@
 import { Component } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Resource } from '../world/resource';
-import { Table } from './table';
+import { TableInner } from './table';
 
 export class TableManager extends Resource {
-  private tables: Map<any, Table<any>> = new Map();
-  private serializableTables: Set<Table<any>> = new Set();
+  private tables: Map<any, TableInner<any>> = new Map();
+  private serializableTables: Set<TableInner<any>> = new Set();
 
-  get<E extends Entity<Component[]>>(entityType: new () => E): Table<E> {
+  get<E extends Entity<Component[]>>(entityType: new () => E): TableInner<E> {
     let table = this.tables.get(entityType);
     if (!table) {
-      table = new Table(entityType, this);
+      table = new TableInner(entityType, this);
       this.tables.set(entityType, table);
     }
-    return table as Table<E>;
+    return table as TableInner<E>;
   }
 
   has<E extends Entity<Component[]>>(entityType: new () => E): boolean {
     return this.tables.has(entityType);
   }
 
-  addSerializable(table: Table<any>): void {
+  addSerializable(table: TableInner<any>): void {
     this.serializableTables.add(table);
   }
 

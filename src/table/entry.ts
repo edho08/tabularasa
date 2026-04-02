@@ -91,18 +91,22 @@ export class TableEntry<const E extends Entity<Component[]>> implements Entry<E>
     this._table = table;
     this._index = index;
     this._lifecycle = EntryLifecycle.ALIVE;
-    for (const comp of this.components) {
-      comp.onAttached(this as unknown as AnyEntry);
+    for (let i = 0; i < this.components.length; i++) {
+      this.components[i].onAttached(this as unknown as AnyEntry, i);
     }
   }
 
   callDeserialized(): void {
     if (this._lifecycle !== EntryLifecycle.ALIVE) throw new TypeError('Entry is not alive');
-    for (const comp of this.components) comp.onDeserialized(this as unknown as AnyEntry);
+    for (let i = 0; i < this.components.length; i++) {
+      this.components[i].onDeserialized(this as unknown as AnyEntry, i);
+    }
   }
 
   callDetached(): void {
-    for (const comp of this.components) comp.onDetached(this as unknown as AnyEntry);
+    for (let i = 0; i < this.components.length; i++) {
+      this.components[i].onDetached(this as unknown as AnyEntry, i);
+    }
     if (this._lifecycle === EntryLifecycle.DYING) {
       this._lifecycle = EntryLifecycle.DEAD;
       this._table = undefined;
@@ -141,9 +145,9 @@ export class TableEntry<const E extends Entity<Component[]>> implements Entry<E>
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in component set`);
     const old = this.components[idx];
-    old.onDetached(this as unknown as AnyEntry);
+    old.onDetached(this as unknown as AnyEntry, idx);
     this.components[idx] = value;
-    value.onAttached(this as unknown as AnyEntry);
+    value.onAttached(this as unknown as AnyEntry, idx);
     return old as C;
   }
 
@@ -153,9 +157,9 @@ export class TableEntry<const E extends Entity<Component[]>> implements Entry<E>
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in component set`);
     const old = this.components[idx];
-    old.onDetached(this as unknown as AnyEntry);
+    old.onDetached(this as unknown as AnyEntry, idx);
     this.components[idx] = value as E['columns'][number];
-    value.onAttached(this as unknown as AnyEntry);
+    value.onAttached(this as unknown as AnyEntry, idx);
     return old;
   }
 
@@ -168,9 +172,9 @@ export class TableEntry<const E extends Entity<Component[]>> implements Entry<E>
     if (numIndex < 0 || numIndex >= this.components.length)
       throw new TypeError(`Index ${String(index)} is out of bounds`);
     const old = this.components[numIndex] as Component;
-    old.onDetached(this as unknown as AnyEntry);
+    old.onDetached(this as unknown as AnyEntry, numIndex);
     this.components[numIndex] = value as Component;
-    (value as Component).onAttached(this as unknown as AnyEntry);
+    (value as Component).onAttached(this as unknown as AnyEntry, numIndex);
     return old as K extends keyof E['columns'] ? E['columns'][K] : never;
   }
 
