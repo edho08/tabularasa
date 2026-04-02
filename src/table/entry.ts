@@ -183,8 +183,7 @@ export class TableEntry<const E extends Entity<Component[]>> implements Entry<E>
     table: Table<any>,
     index: number,
   ): Entry<Entity<Component[]>> {
-    const columns = (table as any)._columns;
-    if (columns === undefined) throw new TypeError('Table has no columns defined');
+    const columns = table.columns;
     const components = columns.map((ctor: ComponentCtor, i: number) =>
       ctor.deserialize(componentsData[i]),
     );

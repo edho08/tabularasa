@@ -9,6 +9,11 @@ export class Table<T extends Entity<Component[]>> {
   private entries: TableEntry<T>[] = [];
   private _columns: readonly ComponentCtor[] | undefined;
 
+  get columns(): readonly ComponentCtor[] {
+    if (this._columns === undefined) throw new TypeError('Table has no columns defined');
+    return this._columns;
+  }
+
   constructor(entityType: new () => T, manager: TableManager) {
     this.entityType = entityType;
     this.manager = manager;
