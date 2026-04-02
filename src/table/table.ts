@@ -55,6 +55,7 @@ export class TableInner<T extends Entity<any[]>> implements Table<T> {
     if (idx < 0) return [] as any;
     entry.lifecycle = EntryLifecycle.DYING;
     entry.callDetached();
+    entry.lifecycle = EntryLifecycle.DEAD;
     const last = this.entries.pop();
     if (last === undefined) return [] as any;
     if (last !== entry) {
