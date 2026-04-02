@@ -90,6 +90,13 @@ export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
     this.components = [...components] as NoInfer<E extends Entity<infer C> ? C : never>;
     this._table = table;
     this._index = index;
+    this._lifecycle = EntryLifecycle.CONSTRUCTED;
+    this.callAttached();
+  }
+
+  callAttached(): void {
+    if (this._lifecycle !== EntryLifecycle.CONSTRUCTED)
+      throw new TypeError('Entry is not constructed');
     this._lifecycle = EntryLifecycle.ALIVE;
     for (let i = 0; i < this.components.length; i++) {
       this.components[i].onAttached(this as unknown as AnyEntry, i);
