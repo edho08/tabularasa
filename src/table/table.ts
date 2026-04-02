@@ -1,19 +1,19 @@
-import { Component, ComponentCtor } from '../entity/component';
+import { ComponentCtor } from '../entity/component';
 import { Entry, EntryLifecycle, TableEntry } from './entry';
 import { Entity } from '../entity/entity';
 import type { TableManager } from './manager';
 
-export interface Table<T extends Entity<Component[]>> {
+export interface Table<T extends Entity<any[]>> {
   readonly columns: readonly ComponentCtor[];
   readonly manager: TableManager;
-  serializeable(): this;
+  serializeable<C extends T['columns']>(columns?: C): this;
   insert(entity: T, components: NoInfer<T extends Entity<infer C> ? C : never>): WeakRef<Entry<T>>;
   delete(ref: WeakRef<Entry<T>>): NoInfer<T extends Entity<infer C> ? C : never>;
   getAt(index: number): WeakRef<Entry<T>> | undefined;
   [Symbol.iterator](): Iterator<Entry<T>>;
 }
 
-export class TableInner<T extends Entity<Component[]>> implements Table<T> {
+export class TableInner<T extends Entity<any[]>> implements Table<T> {
   readonly entityType: new () => T;
   readonly manager: TableManager;
   private entries: TableEntry<T>[] = [];
@@ -29,7 +29,10 @@ export class TableInner<T extends Entity<Component[]>> implements Table<T> {
     this.manager = manager;
   }
 
-  serializeable(): this {
+  serializeable<C extends T['columns']>(columns?: C): this {
+    if (columns !== undefined) {
+      this._columns = columns;
+    }
     this.manager.addSerializable(this);
     return this;
   }
@@ -69,6 +72,7 @@ export class TableInner<T extends Entity<Component[]>> implements Table<T> {
     for (const entry of this.entries) {
       entry.lifecycle = EntryLifecycle.DYING;
       entry.callDetached();
+      entry.lifecycle = EntryLifecycle.DEAD;
     }
     this.entries = [];
     for (let i = 0; i < data.length; i++) {

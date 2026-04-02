@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { Component } from '../../src/entity/component';
-import type { Entry } from '../../src/table/entry';
 
 class TestComponent extends Component {
   attachCalled = false;
@@ -8,23 +7,19 @@ class TestComponent extends Component {
   aliveCalled = false;
   deadCalled = false;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onAttached(_entry: Entry<any>): void {
+  onAttached(): void {
     this.attachCalled = true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDetached(_entry: Entry<any>): void {
+  onDetached(): void {
     this.detachCalled = true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onAlive(_entry: Entry<any>): void {
+  onAlive(): void {
     this.aliveCalled = true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDead(_entry: Entry<any>): void {
+  onDead(): void {
     this.deadCalled = true;
   }
 }
@@ -35,14 +30,10 @@ class DataComponent extends Component {
   name = 'unnamed';
   tags: string[] = [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onAttached(_entry: Entry<any>): void {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDetached(_entry: Entry<any>): void {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onAlive(_entry: Entry<any>): void {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDead(_entry: Entry<any>): void {}
+  onAttached(): void {}
+  onDetached(): void {}
+  onAlive(): void {}
+  onDead(): void {}
 }
 
 describe('Component', () => {
@@ -54,40 +45,34 @@ describe('Component', () => {
 
   it('attach can be called', () => {
     const comp = new TestComponent();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    comp.onAttached(undefined as any);
+    comp.onAttached();
     expect(comp.attachCalled).toBe(true);
   });
 
   it('detach can be called', () => {
     const comp = new TestComponent();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    comp.onDetached(undefined as any);
+    comp.onDetached();
     expect(comp.detachCalled).toBe(true);
   });
 
   it('alive can be called', () => {
     const comp = new TestComponent();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    comp.onAlive(undefined as any);
+    comp.onAlive();
     expect(comp.aliveCalled).toBe(true);
   });
 
   it('dead can be called', () => {
     const comp = new TestComponent();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    comp.onDead(undefined as any);
+    comp.onDead();
     expect(comp.deadCalled).toBe(true);
   });
 
   it('all hooks can be called in sequence', () => {
     const comp = new TestComponent();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entry = undefined as any;
-    comp.onAttached(entry);
-    comp.onAlive(entry);
-    comp.onDetached(entry);
-    comp.onDead(entry);
+    comp.onAttached();
+    comp.onAlive();
+    comp.onDetached();
+    comp.onDead();
     expect(comp.attachCalled).toBe(true);
     expect(comp.aliveCalled).toBe(true);
     expect(comp.detachCalled).toBe(true);
@@ -101,7 +86,6 @@ describe('Component', () => {
       comp.y = 20;
       comp.name = 'test';
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = comp.serialize(undefined as any);
 
       expect(data).toEqual({
@@ -115,7 +99,6 @@ describe('Component', () => {
     it('skips function properties', () => {
       const comp = new DataComponent();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = comp.serialize(undefined as any);
 
       expect(data.attach).toBeUndefined();
@@ -134,8 +117,7 @@ describe('Component', () => {
         tags: ['a', 'b'],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const comp = DataComponent.deserialize(data, undefined as any);
+      const comp = DataComponent.deserialize(data) as DataComponent;
 
       expect(comp).toBeInstanceOf(DataComponent);
       expect(comp.x).toBe(100);
@@ -155,19 +137,14 @@ describe('Component', () => {
           super();
           constructed = true;
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onAttached(_entry: Entry<any>): void {}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onDetached(_entry: Entry<any>): void {}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onAlive(_entry: Entry<any>): void {}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onDead(_entry: Entry<any>): void {}
+        onAttached(): void {}
+        onDetached(): void {}
+        onAlive(): void {}
+        onDead(): void {}
       }
 
       const data = { x: 5, y: 10, name: 'test', tags: [] };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const comp = TestConstructed.deserialize(data, undefined as any);
+      const comp = TestConstructed.deserialize(data) as TestConstructed;
 
       expect(constructed).toBe(false);
       expect(comp).toBeInstanceOf(TestConstructed);

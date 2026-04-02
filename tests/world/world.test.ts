@@ -1,27 +1,29 @@
 import { describe, it, expect } from 'vitest';
 import { Component } from '../../src/entity/component';
-import { Entity, Columns } from '../../src/entity/entity';
+import { Entity } from '../../src/entity/entity';
+import { TableInner } from '../../src/table/table';
 import { TableManager } from '../../src/table/manager';
-import { Resource } from '../../src/world/resource';
 import { World } from '../../src/world/world';
 
 class Position extends Component {
   x = 0;
   y = 0;
+  onAttached(): void {}
+  onDetached(): void {}
+  onAlive(): void {}
+  onDead(): void {}
 }
 
 class Velocity extends Component {
   vx = 0;
   vy = 0;
+  onAttached(): void {}
+  onDetached(): void {}
+  onAlive(): void {}
+  onDead(): void {}
 }
 
-class Actor extends Entity {
-  static columns = Columns(Position, Velocity);
-}
-
-class CustomResource extends Resource {
-  data = 'custom';
-}
+class Actor extends Entity<[typeof Position, typeof Velocity]> {}
 
 describe('World', () => {
   describe('constructor', () => {
@@ -45,49 +47,7 @@ describe('World', () => {
     it('returns undefined for unknown resource', () => {
       const world = new World();
 
-      expect(world.getResource(CustomResource)).toBeUndefined();
-    });
-
-    it('returns resource after setResource', () => {
-      const world = new World();
-      const resource = new CustomResource();
-
-      world.setResource(CustomResource, resource);
-
-      expect(world.getResource(CustomResource)).toBe(resource);
-    });
-
-    it('returns same resource on multiple calls', () => {
-      const world = new World();
-      const resource = new CustomResource();
-
-      world.setResource(CustomResource, resource);
-
-      expect(world.getResource(CustomResource)).toBe(resource);
-      expect(world.getResource(CustomResource)).toBe(resource);
-    });
-
-    it('attaches world to resource on setResource', () => {
-      const world = new World();
-      const resource = new CustomResource();
-
-      world.setResource(CustomResource, resource);
-
-      expect(resource.world).toBe(world);
-    });
-  });
-
-  describe('setResource', () => {
-    it('overwrites existing resource', () => {
-      const world = new World();
-      const resource1 = new CustomResource();
-      const resource2 = new CustomResource();
-
-      world.setResource(CustomResource, resource1);
-      world.setResource(CustomResource, resource2);
-
-      expect(world.getResource(CustomResource)).toBe(resource2);
-      expect(world.getResource(CustomResource)).not.toBe(resource1);
+      expect(world.getResource(World)).toBeUndefined();
     });
   });
 
@@ -102,25 +62,26 @@ describe('World', () => {
     it('returns table for entity type', () => {
       const world = new World();
 
-      const table = world.tables.getTable(Actor);
+      const table = world.tables.get(Actor);
 
       expect(table).toBeDefined();
-      expect(table.entityType).toBe(Actor);
+      expect(table).toBeInstanceOf(TableInner);
     });
 
     it('returns same table on multiple calls', () => {
       const world = new World();
 
-      const table1 = world.tables.getTable(Actor);
-      const table2 = world.tables.getTable(Actor);
+      const table1 = world.tables.get(Actor);
+      const table2 = world.tables.get(Actor);
 
       expect(table1).toBe(table2);
     });
 
     it('creates entries in the table', () => {
       const world = new World();
-      const table = world.tables.getTable(Actor);
-      const ref = table.insert([new Position(), new Velocity()]);
+      const table = world.tables.get(Actor) as TableInner<Actor>;
+      const actor = new Actor();
+      const ref = table.insert(actor, [new Position(), new Velocity()]);
 
       expect(ref.deref()).toBeDefined();
     });

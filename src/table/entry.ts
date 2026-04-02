@@ -18,7 +18,7 @@ export interface AnyEntry {
   asAny(): AnyEntry;
 }
 
-export interface Entry<E extends Entity<Component[]>> extends AnyEntry {
+export interface Entry<E extends Entity<any[]>> extends AnyEntry {
   readonly table: Table<E>;
   get<C extends E['columns'][number]>(ctor: { new (...args: any): C }): C;
   getAt<const K extends keyof E['columns']>(
@@ -38,7 +38,7 @@ export interface Entry<E extends Entity<Component[]>> extends AnyEntry {
   asAny(): AnyEntry;
 }
 
-export class TableEntry<const E extends Entity<Component[]>> implements Entry<E> {
+export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
   private _lifecycle: EntryLifecycle = EntryLifecycle.CONSTRUCTED;
   private _index: number = -1;
   private _table: Table<E> | undefined;
@@ -186,11 +186,11 @@ export class TableEntry<const E extends Entity<Component[]>> implements Entry<E>
     componentsData: Record<string, unknown>[],
     table: Table<any>,
     index: number,
-  ): Entry<Entity<Component[]>> {
+  ): Entry<Entity<any[]>> {
     const columns = table.columns;
     const components = columns.map((ctor: ComponentCtor, i: number) =>
       ctor.deserialize(componentsData[i]),
     );
-    return new TableEntry(components as any, table as Table<Entity<Component[]>>, index);
+    return new TableEntry(components as any, table as any, index);
   }
 }

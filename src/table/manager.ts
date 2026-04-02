@@ -1,4 +1,3 @@
-import { Component } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Resource } from '../world/resource';
 import type { Table } from './table';
@@ -8,7 +7,7 @@ export class TableManager extends Resource {
   private tables: Map<any, TableInner<any>> = new Map();
   private serializableTables: Set<TableInner<any>> = new Set();
 
-  get<E extends Entity<Component[]>>(entityType: new () => E): Table<E> {
+  get<E extends Entity<any[]>>(entityType: new () => E): Table<E> {
     let table = this.tables.get(entityType);
     if (!table) {
       table = new TableInner(entityType, this);

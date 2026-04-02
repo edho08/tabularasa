@@ -1,4 +1,3 @@
-import { OwnManager } from '../entity/pattern/own';
 import { TableManager } from '../table/manager';
 import { Resource } from './resource';
 
@@ -7,7 +6,6 @@ export class World {
 
   constructor() {
     this.setResource(TableManager, new TableManager());
-    this.setResource(OwnManager, new OwnManager());
   }
 
   getResource<T extends Resource>(type: new (...args: never[]) => T): T | undefined {
