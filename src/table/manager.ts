@@ -17,10 +17,6 @@ export class TableManager extends Resource {
     return table as TableInner<E>;
   }
 
-  has<E extends Entity<Component[]>>(entityType: new () => E): boolean {
-    return this.tables.has(entityType);
-  }
-
   addSerializable(table: TableInner<any>): void {
     this.serializableTables.add(table);
   }
