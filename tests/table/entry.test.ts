@@ -91,7 +91,7 @@ describe('Entry', () => {
   ): Entry<T> {
     const table = manager.get(entityType) as TableInner<T>;
     const actor = new entityType();
-    return table.insert(actor, components as any).deref()!;
+    return table.insert(components as any).deref()!;
   }
 
   describe('typed Entry<Actor>', () => {
@@ -334,8 +334,7 @@ describe('Entry', () => {
       const pos = new Position();
       const vel = new Velocity();
       const table = manager.get(Actor) as TableInner<Actor>;
-      const actor = new Actor();
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
       const entry = ref.deref()!;
 
       table.delete(ref);

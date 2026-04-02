@@ -69,7 +69,7 @@ class TrackedVelocity extends Velocity {
   }
 }
 
-class Actor extends Entity<[typeof TrackedPosition, typeof TrackedVelocity]> {}
+class Actor extends Entity<[TrackedPosition, TrackedVelocity]> {}
 
 describe('Table', () => {
   let manager: TableManager;
@@ -93,7 +93,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
       const entry = ref.deref()!;
 
       expect(entry.lifecycle).toBe(EntryLifecycle.ALIVE);
@@ -105,7 +105,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      table.insert(actor, [pos, vel]);
+      table.insert([pos, vel]);
 
       expect(TrackedPosition.attachCalls).toBe(1);
       expect(TrackedVelocity.attachCalls).toBe(1);
@@ -117,7 +117,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
 
       expect(ref).toBeInstanceOf(WeakRef);
       expect(ref.deref()).toBeDefined();
@@ -131,7 +131,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
       const entry = ref.deref()!;
 
       table.delete(ref);
@@ -145,8 +145,8 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      table.insert(actor, [pos, vel]);
-      const ref2 = table.insert(actor, [new TrackedPosition(), new TrackedVelocity()]);
+      table.insert([pos, vel]);
+      const ref2 = table.insert([new TrackedPosition(), new TrackedVelocity()]);
 
       table.delete(ref2);
 
@@ -163,8 +163,8 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor1 = new Actor();
       const actor2 = new Actor();
-      const ref1 = table.insert(actor1, [pos1, vel1]);
-      const ref2 = table.insert(actor2, [pos2, vel2]);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
       const entry2 = ref2.deref()!;
 
       table.delete(ref1);
@@ -180,7 +180,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      table.insert(actor, [pos, vel]);
+      table.insert([pos, vel]);
 
       const ref = table.getAt(0);
 
@@ -194,7 +194,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      table.insert(actor, [pos, vel]);
+      table.insert([pos, vel]);
 
       expect(table.getAt(-1)).toBeUndefined();
     });
@@ -205,7 +205,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      table.insert(actor, [pos, vel]);
+      table.insert([pos, vel]);
 
       expect(table.getAt(1)).toBeUndefined();
       expect(table.getAt(100)).toBeUndefined();
@@ -222,8 +222,8 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor1 = new Actor();
       const actor2 = new Actor();
-      const ref1 = table.insert(actor1, [pos1, vel1]);
-      const ref2 = table.insert(actor2, [pos2, vel2]);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
       const entry1 = ref1.deref()!;
       const entry2 = ref2.deref()!;
 
@@ -243,7 +243,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
       const entry = ref.deref()!;
 
       const entries = [...table];
@@ -259,7 +259,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
       const entry = ref.deref()!;
 
       expect(entry.index).toBe(0);
@@ -274,8 +274,8 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor1 = new Actor();
       const actor2 = new Actor();
-      const ref1 = table.insert(actor1, [pos1, vel1]);
-      const ref2 = table.insert(actor2, [pos2, vel2]);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
       const entry1 = ref1.deref()!;
       const entry2 = ref2.deref()!;
 
@@ -289,7 +289,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
 
-      const ref = table.insert(actor, [pos, vel]);
+      const ref = table.insert([pos, vel]);
       const entry = ref.deref()!;
 
       table.delete(ref);
@@ -306,8 +306,8 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor1 = new Actor();
       const actor2 = new Actor();
-      const ref1 = table.insert(actor1, [pos1, vel1]);
-      const ref2 = table.insert(actor2, [pos2, vel2]);
+      const ref1 = table.insert([pos1, vel1]);
+      const ref2 = table.insert([pos2, vel2]);
       const entry1 = ref1.deref()!;
       const entry2 = ref2.deref()!;
 
@@ -333,7 +333,7 @@ describe('Table', () => {
 
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor = new Actor();
-      table.insert(actor, [pos, vel]);
+      table.insert([pos, vel]);
       const entry = table.getAt(0)!.deref()!;
 
       const data = entry.serialize();
@@ -393,7 +393,7 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       table.serializeable([TrackedPosition, TrackedVelocity]);
       const actor = new Actor();
-      table.insert(actor, [pos, vel]);
+      table.insert([pos, vel]);
 
       TrackedPosition.detachCalls = 0;
       TrackedVelocity.detachCalls = 0;
@@ -467,8 +467,8 @@ describe('Table', () => {
       const table = manager.get(Actor) as TableInner<Actor>;
       const actor1 = new Actor();
       const actor2 = new Actor();
-      table.insert(actor1, [pos1, vel1]);
-      table.insert(actor2, [pos2, vel2]);
+      table.insert([pos1, vel1]);
+      table.insert([pos2, vel2]);
 
       const data = table.serialize();
 

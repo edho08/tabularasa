@@ -23,7 +23,7 @@ class Velocity extends Component {
   onDead(): void {}
 }
 
-class Actor extends Entity<[typeof Position, typeof Velocity]> {}
+class Actor extends Entity<[Position, Velocity]> {}
 
 describe('World', () => {
   describe('constructor', () => {
@@ -80,8 +80,7 @@ describe('World', () => {
     it('creates entries in the table', () => {
       const world = new World();
       const table = world.tables.get(Actor) as TableInner<Actor>;
-      const actor = new Actor();
-      const ref = table.insert(actor, [new Position(), new Velocity()]);
+      const ref = table.insert([new Position(), new Velocity()]);
 
       expect(ref.deref()).toBeDefined();
     });

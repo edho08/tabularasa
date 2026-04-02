@@ -7,10 +7,7 @@ export interface Table<T extends Entity<any[]>> {
   readonly columns: readonly ComponentCtor[];
   readonly manager: TableManager;
   serializeable<C extends T['columns']>(columns?: C): this;
-  insert(
-    entity: new () => T,
-    components: NoInfer<T extends Entity<infer C> ? C : never>,
-  ): WeakRef<Entry<T>>;
+  insert(components: NoInfer<T extends Entity<infer C> ? C : never>): WeakRef<Entry<T>>;
   delete(ref: WeakRef<Entry<T>>): NoInfer<T extends Entity<infer C> ? C : never>;
   getAt(index: number): WeakRef<Entry<T>> | undefined;
   [Symbol.iterator](): Iterator<Entry<T>>;
@@ -40,10 +37,7 @@ export class TableInner<T extends Entity<any[]>> implements Table<T> {
     return this;
   }
 
-  insert(
-    _entity: new () => T,
-    components: NoInfer<T extends Entity<infer C> ? C : never>,
-  ): WeakRef<Entry<T>> {
+  insert(components: NoInfer<T extends Entity<infer C> ? C : never>): WeakRef<Entry<T>> {
     if (this._columns === undefined) {
       this._columns = components.map(c => c.constructor as ComponentCtor);
     }
