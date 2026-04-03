@@ -52,7 +52,9 @@ const entry = ref.deref()!;
 
 // Access components
 const pos = entry.get(Position);
-entry.set(Position, new Position());
+
+// Set component (uses value.constructor to find target)
+entry.set(new Position());
 
 // Iterate over all entries
 for (const entry of table) {
@@ -62,6 +64,24 @@ for (const entry of table) {
 // O(1) deletion via swap-pop
 table.delete(ref);
 ```
+
+### Entry API
+
+Entries provide typed access to components:
+
+| Method                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `get(C)`                 | Get first component of type C                  |
+| `getAll(C)`              | Get all components of type C (array)           |
+| `getAt(index)`           | Get component by slot index                    |
+| `getAny(C)`              | Get first component of type C (runtime)        |
+| `getAllAny(C)`           | Get all components of type C (runtime)         |
+| `set(value)`             | Replace component (finds by value.constructor) |
+| `setAt(index, value)`    | Set component by slot index                    |
+| `setAny(value)`          | Replace component (runtime)                    |
+| `setAtAny(value, index)` | Set at index after validating type exists      |
+| `has(C)`                 | Check if component type exists (compile-time)  |
+| `hasAny(C)`              | Check if component type exists (runtime)       |
 
 ### Lifecycle Hooks
 
@@ -84,6 +104,41 @@ class Health extends Component {
     console.log('Component was deserialized');
   }
 }
+```
+
+### Entry Lifecycle
+
+Entries transition through states:
+
+- `CONSTRUCTED` → `ALIVE` (after `onAttached` called)
+- `ALIVE` → `DYING` → `DEAD` (when deleted)
+
+### Component Wrappers
+
+#### Option<T>
+
+Wraps an optional component. Serializes to `{}` when None, otherwise serializes inner.
+
+```ts
+import { Option } from 'tabularasa';
+
+const OptPos = Option.for(Position);
+const some = OptPos.some(new Position());
+const none = OptPos.none();
+```
+
+#### Pin<T>
+
+Prevents component removal while entry is alive. Throws if removal is attempted.
+
+```ts
+import { Pin } from 'tabularasa';
+
+const PinPos = Pin.for(Position);
+const pinned = PinPos.make(new Position());
+
+// entry.set(pinned) throws if entry is ALIVE
+// entry.delete() allows pin removal (entry is DYING)
 ```
 
 ### Serialization
@@ -112,12 +167,10 @@ world.tables.deserialize(data);
 - `World` - Container for all tables and resources
 - `Resource` - Singleton data accessible via World
 
-### Pattern Functions
+### Wrapper Factories
 
-- `Option(Component)` - Optional component wrapper
-- `Union(...Components)` - One-of variant wrapper
-- `Derived(Component)` - Polymorphic component wrapper (use `.sub()` to add subtypes)
-- `Readonly(Component)` - Immutable component wrapper
+- `Option.for(Component)` - Optional component wrapper
+- `Pin.for(Component)` - Prevents component removal
 
 ## Development
 

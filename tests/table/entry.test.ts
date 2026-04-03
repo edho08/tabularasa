@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Component } from '../../src/entity/component';
 import { Entity } from '../../src/entity/entity';
-import { Entry, EntryLifecycle } from '../../src/table/entry';
+import { Entry, EntryLifecycle, TableEntry } from '../../src/table/entry';
 import { TableInner } from '../../src/table/table';
 import { TableManager } from '../../src/table/manager';
 
@@ -90,8 +90,9 @@ describe('Entry', () => {
     components: Component[],
   ): Entry<T> {
     const table = manager.get(entityType) as TableInner<T>;
-    const actor = new entityType();
-    return table.insert(components as any).deref()!;
+    const entry = table.insert(components as any).deref();
+    if (entry === undefined) throw new Error('Entry should exist');
+    return entry;
   }
 
   describe('typed Entry<Actor>', () => {
@@ -172,7 +173,7 @@ describe('Entry', () => {
         const newPos = new Position();
         newPos.x = 999;
 
-        const old = actor.set(Position, newPos);
+        const old = actor.set(newPos);
 
         expect(old).toBe(pos);
         expect(old?.x).toBe(1);
@@ -180,14 +181,6 @@ describe('Entry', () => {
         const found = actor.get(Position);
         expect(found).toBe(newPos);
         expect(found.x).toBe(999);
-      });
-
-      it('throws for missing component', () => {
-        const pos = new Position();
-        const actor = createEntry(Actor, [pos, new Velocity()]);
-
-        const newHealth = new Health();
-        expect(() => actor.set(Health, newHealth)).toThrow(TypeError);
       });
     });
 
@@ -249,6 +242,68 @@ describe('Entry', () => {
         expect(() => actor.setAt(-1, newVel)).toThrow(TypeError);
       });
     });
+
+    describe('getAll', () => {
+      it('returns all components matching type', () => {
+        const pos1 = new Position();
+        pos1.x = 1;
+        const pos2 = new Position();
+        pos2.x = 2;
+        const vel = new Velocity();
+        const actor = createEntry(Actor, [pos1, pos2, vel]);
+
+        const allPositions = actor.getAll(Position);
+
+        expect(allPositions).toHaveLength(2);
+        expect(allPositions[0]).toBe(pos1);
+        expect(allPositions[1]).toBe(pos2);
+      });
+    });
+
+    describe('hasAny', () => {
+      it('returns true if component type exists (runtime check)', () => {
+        const pos = new Position();
+        const vel = new Velocity();
+        const actor = createEntry(Actor, [pos, vel]);
+
+        expect(actor.hasAny(Position)).toBe(true);
+        expect(actor.hasAny(Velocity)).toBe(true);
+        expect(actor.hasAny(Health)).toBe(false);
+      });
+    });
+
+    describe('setAtAny', () => {
+      it('sets component at index after validating type exists', () => {
+        const pos = new Position();
+        pos.x = 1;
+        const vel = new Velocity();
+        const actor = createEntry(Actor, [pos, vel]);
+
+        const newPos = new Position();
+        newPos.x = 999;
+
+        const old = actor.setAtAny(newPos, 0);
+
+        expect(old).toBe(pos);
+        expect(actor.getAt(0)).toBe(newPos);
+      });
+
+      it('throws if component type not in entity', () => {
+        const pos = new Position();
+        const actor = createEntry(Actor, [pos, new Velocity()]);
+
+        const health = new Health();
+        expect(() => actor.setAtAny(health, 0)).toThrow(TypeError);
+      });
+
+      it('throws for index out of bounds', () => {
+        const pos = new Position();
+        const actor = createEntry(Actor, [pos, new Velocity()]);
+
+        expect(() => actor.setAtAny(pos, 10)).toThrow(TypeError);
+        expect(() => actor.setAtAny(pos, -1)).toThrow(TypeError);
+      });
+    });
   });
 
   describe('lifecycle hooks', () => {
@@ -273,7 +328,7 @@ describe('Entry', () => {
         TrackedVelocity.attachCalls = 0;
 
         const newPos = new TrackedPosition();
-        entry.set(Position, newPos);
+        entry.set(newPos);
 
         expect(TrackedPosition.detachCalls).toBe(1);
         expect(TrackedPosition.attachCalls).toBe(1);
@@ -330,12 +385,21 @@ describe('Entry', () => {
       expect(actor.lifecycle).toBe(EntryLifecycle.ALIVE);
     });
 
+    it('callAttached transitions entity from CONSTRUCTED to ALIVE', () => {
+      const table = manager.get(Actor) as TableInner<Actor>;
+      const entry = new TableEntry([new Position(), new Velocity()] as any, table, 0);
+
+      expect(entry.lifecycle).toBe(EntryLifecycle.ALIVE);
+    });
+
     it('entry is DEAD after table delete', () => {
       const pos = new Position();
       const vel = new Velocity();
       const table = manager.get(Actor) as TableInner<Actor>;
       const ref = table.insert([pos, vel]);
-      const entry = ref.deref()!;
+      const entry = ref.deref();
+
+      if (entry === undefined) throw new Error('Entry should exist');
 
       table.delete(ref);
 

@@ -14,18 +14,22 @@ export interface AnyEntry {
   readonly lifecycle: EntryLifecycle;
   readonly table: Table<any>;
   getAny(ctor: ComponentCtor): Component | undefined;
+  getAllAny(ctor: ComponentCtor): Component[];
   setAny(value: Component): Component | undefined;
+  setAtAny(value: Component, index: number): Component;
+  hasAny(ctor: ComponentCtor): boolean;
   asAny(): AnyEntry;
 }
 
 export interface Entry<E extends Entity<any[]>> extends AnyEntry {
   readonly table: Table<E>;
   get<C extends E['columns'][number]>(ctor: { new (...args: any): C }): C;
+  getAll<C extends E['columns'][number]>(ctor: { new (...args: any): C }): C[];
   getAt<const K extends keyof E['columns']>(
     index: K,
   ): K extends keyof E['columns'] ? E['columns'][K] : never;
 
-  set<C extends E['columns'][number]>(ctor: { new (...args: any): C }, value: C): C;
+  set<C extends E['columns'][number]>(value: C): C;
   setAt<const K extends keyof E['columns']>(
     index: K,
     value: E['columns'][K],
@@ -132,6 +136,16 @@ export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
     return this.components.find(c => c instanceof ctor);
   }
 
+  getAll<C extends E['columns'][number]>(ctor: { new (...args: any): C }): C[] {
+    if (this._lifecycle !== EntryLifecycle.ALIVE) throw new TypeError('Entry is not alive');
+    return this.components.filter(c => c instanceof ctor) as C[];
+  }
+
+  getAllAny(ctor: ComponentCtor): Component[] {
+    if (this._lifecycle !== EntryLifecycle.ALIVE) throw new TypeError('Entry is not alive');
+    return this.components.filter(c => c instanceof ctor);
+  }
+
   getAt<const K extends keyof E['columns']>(
     index: K,
   ): K extends keyof E['columns'] ? E['columns'][K] : never {
@@ -147,8 +161,14 @@ export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
     return this.components.some(c => c instanceof ctor);
   }
 
-  set<C extends E['columns'][number]>(ctor: { new (...args: any): C }, value: C): C {
+  hasAny(ctor: ComponentCtor): boolean {
     if (this._lifecycle !== EntryLifecycle.ALIVE) throw new TypeError('Entry is not alive');
+    return this.components.some(c => c instanceof ctor);
+  }
+
+  set<C extends E['columns'][number]>(value: C): C {
+    if (this._lifecycle !== EntryLifecycle.ALIVE) throw new TypeError('Entry is not alive');
+    const ctor = value.constructor as ComponentCtor;
     const idx = this.components.findIndex(c => c instanceof ctor);
     if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in component set`);
     const old = this.components[idx];
@@ -183,6 +203,20 @@ export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
     this.components[numIndex] = value as Component;
     (value as Component).onAttached(this as unknown as AnyEntry, numIndex);
     return old as K extends keyof E['columns'] ? E['columns'][K] : never;
+  }
+
+  setAtAny(value: Component, index: number): Component {
+    if (this._lifecycle !== EntryLifecycle.ALIVE) throw new TypeError('Entry is not alive');
+    const ctor = value.constructor as ComponentCtor;
+    const idx = this.components.findIndex(c => c instanceof ctor);
+    if (idx < 0) throw new TypeError(`Component ${ctor.name} is not in component set`);
+    if (index < 0 || index >= this.components.length)
+      throw new TypeError(`Index ${index} is out of bounds`);
+    const old = this.components[index] as Component;
+    old.onDetached(this as unknown as AnyEntry, index);
+    this.components[index] = value as E['columns'][number];
+    value.onAttached(this as unknown as AnyEntry, index);
+    return old;
   }
 
   serialize(): Record<string, unknown>[] {

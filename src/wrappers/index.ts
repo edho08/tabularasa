@@ -1,1 +1,2 @@
-export { Option, option } from './option';
+export { Option } from './option';
+export { Pin } from './pin';
