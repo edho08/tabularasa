@@ -141,6 +141,18 @@ const pinned = PinPos.make(new Position());
 // entry.delete() allows pin removal (entry is DYING)
 ```
 
+#### Union<T1, T2, ...>
+
+Wraps one of several possible component types. Serializes variant index and inner data.
+
+```ts
+import { Union } from 'tabularasa';
+
+const StateUnion = Union.for(Idle, Walking, Running);
+const state = StateUnion.make(new Idle());
+// variant() returns which variant is active (0 for Idle)
+```
+
 ### Serialization
 
 Tables must be marked as serializable before use:
