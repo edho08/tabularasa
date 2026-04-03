@@ -59,7 +59,7 @@ describe('Union', () => {
   });
 
   describe('variant', () => {
-    it('returns the correct variant index', () => {
+    it('returns the correct variant index based on sorted order', () => {
       const StateUnion = Union.for(Idle, Walking, Running);
 
       const idle = StateUnion.make(new Idle());
@@ -67,8 +67,8 @@ describe('Union', () => {
       const running = StateUnion.make(new Running());
 
       expect(idle.variant()).toBe(0);
-      expect(walking.variant()).toBe(1);
-      expect(running.variant()).toBe(2);
+      expect(running.variant()).toBe(1);
+      expect(walking.variant()).toBe(2);
     });
   });
 

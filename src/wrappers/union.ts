@@ -5,7 +5,6 @@ class Union extends Component {
   constructor(
     readonly inner: Component,
     private _variant: number,
-    private _ctors: ComponentCtor[],
   ) {
     super();
   }
@@ -34,22 +33,21 @@ class Union extends Component {
   }
 
   static override deserialize(data: Record<string, unknown>): Union {
-    const sortedCtors = (this as any)._sortedCtors as ComponentCtor[];
+    const ctors = (this as any)._ctors as ComponentCtor[];
     const variant = data.variant as number;
-    const ctor = sortedCtors[variant];
+    const ctor = ctors[variant];
     const value = ctor.deserialize(data.data as Record<string, unknown>);
-    return new this(value, variant, (this as any)._ctors as ComponentCtor[]);
+    return new this(value, variant);
   }
 
   static make(value: Component): Union {
     const ctors = (this as any)._ctors as ComponentCtor[];
     const variant = ctors.findIndex(c => c === value.constructor);
     if (variant < 0) throw new TypeError('Value constructor not in union');
-    return new this(value, 0, []);
+    return new this(value, variant);
   }
 
   private static _ctors: ComponentCtor[];
-  private static _sortedCtors: ComponentCtor[];
   private static ctorCache = new Map<string, new (value: any) => Union>();
   private static methodCache = new Map<string, UnionStaticMethods>();
 
@@ -69,13 +67,12 @@ class Union extends Component {
 
     const MonoUnion = class extends Union {
       constructor(value: Component) {
-        const variant = (ctors as ComponentCtor[]).findIndex(c => c === value.constructor);
+        const variant = sortedCtors.findIndex(c => c === value.constructor);
         if (variant < 0) throw new TypeError('Value constructor not in union');
-        super(value, variant, ctors as ComponentCtor[]);
+        super(value, variant);
       }
     };
-    (MonoUnion as any)._ctors = ctors;
-    (MonoUnion as any)._sortedCtors = sortedCtors;
+    (MonoUnion as any)._ctors = sortedCtors;
 
     const methods: UnionStaticMethods = {
       make: (value: Component) => new MonoUnion(value),
