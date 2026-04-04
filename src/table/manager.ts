@@ -1,4 +1,5 @@
 import { Entity } from '../entity/entity';
+import { EntityRegistry } from '../entity/registry';
 import { Resource } from '../world/resource';
 import type { Table } from './table';
 import { TableInner } from './table';
@@ -10,6 +11,7 @@ export class TableManager extends Resource {
   get<E extends Entity<any[]>>(entityType: new () => E): Table<E> {
     let table = this.tables.get(entityType);
     if (!table) {
+      EntityRegistry.get(entityType);
       table = new TableInner(entityType, this);
       this.tables.set(entityType, table);
     }

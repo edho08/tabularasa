@@ -4,7 +4,7 @@ import { Entity } from '../../src/entity/entity';
 import { TableInner } from '../../src/table/table';
 import { TableManager } from '../../src/table/manager';
 
-class Position extends Component {
+class _Position extends Component {
   x = 0;
   y = 0;
   onAttached(): void {}
@@ -13,7 +13,7 @@ class Position extends Component {
   onDead(): void {}
 }
 
-class Velocity extends Component {
+class _Velocity extends Component {
   vx = 0;
   vy = 0;
   onAttached(): void {}
@@ -22,8 +22,8 @@ class Velocity extends Component {
   onDead(): void {}
 }
 
-class Actor extends Entity<[typeof Position, typeof Velocity]> {}
-class Enemy extends Entity<[typeof Position]> {}
+class Actor extends Entity<[typeof _Position, typeof _Velocity]> {}
+class Enemy extends Entity<[typeof _Position]> {}
 
 describe('TableManager', () => {
   const manager = new TableManager();

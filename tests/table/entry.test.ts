@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Component } from '../../src/entity/component';
 import { Entity } from '../../src/entity/entity';
+import { EntityRegistry } from '../../src/entity/registry';
 import { Entry, EntryLifecycle, TableEntry } from '../../src/table/entry';
 import { TableInner } from '../../src/table/table';
 import { TableManager } from '../../src/table/manager';
@@ -417,6 +418,152 @@ describe('Entry', () => {
 
       expect(ref).toBeInstanceOf(WeakRef);
       expect(ref.deref()).toBe(entry);
+    });
+  });
+
+  describe('references', () => {
+    class Target extends Entity<[Position]> {}
+    class Other extends Entity<[Velocity]> {}
+
+    beforeEach(() => {
+      (EntityRegistry as any).nextId = 0;
+      (EntityRegistry as any).ids = new Map();
+      (Actor as any).id = undefined;
+      (Target as any).id = undefined;
+      (Other as any).id = undefined;
+    });
+
+    function createTableEntry<T extends Entity<any[]>>(
+      entityType: new () => T,
+      components: Component[],
+    ): TableEntry<T> {
+      const table = manager.get(entityType) as TableInner<T>;
+      const ref = table.insert(components as any);
+      const entry = ref.deref();
+      if (entry === undefined) throw new Error('Entry should exist');
+      return entry as unknown as TableEntry<T>;
+    }
+
+    it('getBackRef returns empty set when no references exist', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+
+      const refs = entry.getBackRef(Target, 0);
+
+      expect(refs).toBeDefined();
+      expect(refs.size).toBe(0);
+    });
+
+    it('setBackRef adds entry to reference set', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target);
+
+      const refs = entry.getBackRef(Target, 0);
+      expect(refs.size).toBe(1);
+      expect(refs.has(target)).toBe(true);
+    });
+
+    it('setBackRef adds multiple entries to same key', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target1 = createTableEntry(Target, [new Position()]);
+      const target2 = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target1);
+      entry.setBackRef(Target, 0, target2);
+
+      const refs = entry.getBackRef(Target, 0);
+      expect(refs.size).toBe(2);
+      expect(refs.has(target1)).toBe(true);
+      expect(refs.has(target2)).toBe(true);
+    });
+
+    it('setBackRef same entry twice does not duplicate', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target);
+      entry.setBackRef(Target, 0, target);
+
+      const refs = entry.getBackRef(Target, 0);
+      expect(refs.size).toBe(1);
+    });
+
+    it('deleteBackRef removes entry from set', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target1 = createTableEntry(Target, [new Position()]);
+      const target2 = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target1);
+      entry.setBackRef(Target, 0, target2);
+      entry.deleteBackRef(Target, 0, target1);
+
+      const refs = entry.getBackRef(Target, 0);
+      expect(refs.size).toBe(1);
+      expect(refs.has(target1)).toBe(false);
+      expect(refs.has(target2)).toBe(true);
+    });
+
+    it('deleteBackRef removes the key when set becomes empty', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target);
+      entry.deleteBackRef(Target, 0, target);
+
+      const refs = entry.getBackRef(Target, 0);
+      expect(refs.size).toBe(0);
+    });
+
+    it('deleteBackRef on non-existent key does nothing', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target = createTableEntry(Target, [new Position()]);
+
+      expect(() => entry.deleteBackRef(Target, 0, target)).not.toThrow();
+    });
+
+    it('different columns produce different keys', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target1 = createTableEntry(Target, [new Position()]);
+      const target2 = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target1);
+      entry.setBackRef(Target, 1, target2);
+
+      const refs0 = entry.getBackRef(Target, 0);
+      const refs1 = entry.getBackRef(Target, 1);
+
+      expect(refs0.size).toBe(1);
+      expect(refs0.has(target1)).toBe(true);
+      expect(refs1.size).toBe(1);
+      expect(refs1.has(target2)).toBe(true);
+    });
+
+    it('different entity types produce different keys for same column', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target = createTableEntry(Target, [new Position()]);
+      const other = createTableEntry(Other, [new Velocity()]);
+
+      entry.setBackRef(Target, 0, target);
+      entry.setBackRef(Other, 0, other);
+
+      const targetRefs = entry.getBackRef(Target, 0);
+      const otherRefs = entry.getBackRef(Other, 0);
+
+      expect(targetRefs.size).toBe(1);
+      expect(targetRefs.has(target)).toBe(true);
+      expect(otherRefs.size).toBe(1);
+      expect(otherRefs.has(other)).toBe(true);
+    });
+
+    it('getBackRef returns ReadonlySet', () => {
+      const entry = createTableEntry(Actor, [new Position(), new Velocity()]);
+      const target = createTableEntry(Target, [new Position()]);
+
+      entry.setBackRef(Target, 0, target);
+
+      const refs: ReadonlySet<TableEntry<Target>> = entry.getBackRef(Target, 0);
+      expect(refs.has(target)).toBe(true);
     });
   });
 });

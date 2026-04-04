@@ -1,5 +1,6 @@
 import { Component, ComponentCtor } from '../entity/component';
 import { Entity } from '../entity/entity';
+import { EntityRegistry } from '../entity/registry';
 import type { Table } from './table';
 
 export enum EntryLifecycle {
@@ -47,6 +48,25 @@ export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
   private _index: number = -1;
   private _table: Table<E> | undefined;
   components!: NoInfer<E extends Entity<infer C> ? C : never>;
+  private backRefs = new Map<number, Set<TableEntry<any>>>();
+  private _restrictCount = 0;
+  private _ownCount = 0;
+
+  set restrictCount(v: number) {
+    this._restrictCount = v;
+  }
+
+  get restrictCount(): number {
+    return this._restrictCount;
+  }
+
+  set ownCount(v: number) {
+    this._ownCount = v;
+  }
+
+  get ownCount(): number {
+    return this._ownCount;
+  }
 
   set lifecycle(v: EntryLifecycle) {
     this._lifecycle = v;
@@ -221,6 +241,74 @@ export class TableEntry<const E extends Entity<any[]>> implements Entry<E> {
 
   serialize(): Record<string, unknown>[] {
     return this.components.map(c => c.serialize(this as unknown as AnyEntry));
+  }
+
+  getBackRef<T extends Entity<any[]>>(
+    entityType: new () => T,
+    column: number,
+  ): ReadonlySet<TableEntry<T>> {
+    const key = (EntityRegistry.get(entityType) << 16) | column;
+    const set = this.backRefs.get(key);
+    if (set === undefined) return new Set() as ReadonlySet<TableEntry<T>>;
+    return set as unknown as ReadonlySet<TableEntry<T>>;
+  }
+
+  setBackRef<T extends Entity<any[]>>(
+    entityType: new () => T,
+    column: number,
+    entry: TableEntry<T>,
+  ): void {
+    const key = (EntityRegistry.get(entityType) << 16) | column;
+    let set = this.backRefs.get(key);
+    if (set === undefined) {
+      set = new Set();
+      this.backRefs.set(key, set);
+    }
+    set.add(entry as TableEntry<any>);
+  }
+
+  deleteBackRef<T extends Entity<any[]>>(
+    entityType: new () => T,
+    column: number,
+    entry: TableEntry<T>,
+  ): void {
+    const key = (EntityRegistry.get(entityType) << 16) | column;
+    const set = this.backRefs.get(key);
+    if (set === undefined) return;
+    set.delete(entry as TableEntry<any>);
+    if (set.size === 0) this.backRefs.delete(key);
+  }
+
+  enforceBackRefs(): void {
+    for (const [key, entries] of this.backRefs) {
+      const column = key & 0xffff;
+      for (const refEntry of entries) {
+        const refComponent = refEntry.getAt(column) as { constructor: { policy: number } };
+        const policy = refComponent.constructor.policy;
+        if (policy === 1) {
+          throw new TypeError('Cannot delete entry: restricted by reference');
+        }
+      }
+    }
+
+    for (const [key, entries] of this.backRefs) {
+      const column = key & 0xffff;
+      for (const refEntry of entries) {
+        const refComponent = refEntry.getAt(column) as {
+          constructor: { policy: number };
+          target: AnyEntry | undefined;
+        };
+        const policy = refComponent.constructor.policy;
+
+        if (policy === 0) {
+          refEntry.table.delete(refEntry.weak());
+        } else if (policy === 2 || policy === 3) {
+          refComponent.target = undefined;
+        }
+      }
+    }
+
+    this.backRefs.clear();
   }
 
   static deserialize(
